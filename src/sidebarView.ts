@@ -110,8 +110,12 @@ export class PdfOllamaTranslatorSidebarView extends ItemView {
 			void this.plugin.updateSettings({ sourceLanguage: sourceEl.value as TranslationLanguage });
 		};
 
-		const arrowEl = rowEl.createSpan({ text: "→", cls: "pdf-ollama-translator-sidebar__arrow" });
-		arrowEl.ariaHidden = "true";
+		const swapButton = rowEl.createEl("button", {
+			cls: "pdf-ollama-translator-sidebar__icon-button",
+			attr: { "aria-label": t("popup.swapLanguage"), title: t("popup.swapLanguage") },
+		});
+		setIcon(swapButton, "arrow-left-right");
+		swapButton.onpointerdown = (event) => event.preventDefault();
 
 		const targetEl = rowEl.createEl("select", { cls: "pdf-ollama-translator-sidebar__select" });
 		for (const option of [
@@ -129,6 +133,21 @@ export class PdfOllamaTranslatorSidebarView extends ItemView {
 				targetLanguage: targetEl.value as Exclude<TranslationLanguage, "auto">,
 			});
 		};
+		swapButton.onClickEvent(() => {
+			if (sourceEl.value === "auto") {
+				sourceEl.value = targetEl.value;
+				targetEl.value = this.plugin.settings.targetLanguage;
+			} else {
+				const previousSource = sourceEl.value;
+				sourceEl.value = targetEl.value;
+				targetEl.value = previousSource;
+			}
+			void this.plugin.updateSettings({
+				sourceLanguage: sourceEl.value as TranslationLanguage,
+				targetLanguage: targetEl.value as Exclude<TranslationLanguage, "auto">,
+			});
+			void this.plugin.translateActiveSelectionFromSidebar();
+		});
 	}
 
 	private renderTextPanels(container: HTMLElement): void {

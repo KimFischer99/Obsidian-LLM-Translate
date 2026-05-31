@@ -1,5 +1,6 @@
 import zh from "./zh.json";
 import en from "./en.json";
+import moment from "moment";
 
 type Translations = typeof zh;
 
@@ -7,11 +8,11 @@ const locales: Record<string, Translations> = { zh, en };
 
 /**
  * Get a translated string by dot-separated key.
- * Language is detected from Obsidian's localStorage setting.
+ * Language is detected from Obsidian's moment locale setting.
  * zh* → Chinese, everything else → English.
  */
 export function t(key: string, vars?: Record<string, string | number>): string {
-    const lang = localStorage.getItem("language") ?? "zh";
+    const lang = moment.locale() ?? "zh";
     const bundle: Translations = lang.startsWith("zh") ? zh : en;
 
     let text = resolve(bundle, key) ?? resolve(zh, key) ?? key;

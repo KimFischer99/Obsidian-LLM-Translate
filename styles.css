@@ -252,12 +252,6 @@
 	color: var(--text-muted);
 }
 
-.pdf-ollama-translator-sidebar__arrow {
-	color: var(--text-muted);
-	font-size: 22px;
-	line-height: 1;
-}
-
 .pdf-ollama-translator-sidebar__panel {
 	overflow: auto;
 	min-height: 120px;
