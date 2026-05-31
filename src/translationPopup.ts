@@ -1,5 +1,6 @@
 import { setIcon } from "obsidian";
 import type { TranslationLanguage, TranslationResult } from "./types";
+import { t } from "./i18n";
 
 type PopupState = "loading" | "success" | "error";
 
@@ -80,7 +81,7 @@ export class TranslationPopup {
 
 	showLoading(sourceText: string, rect: DOMRect): void {
 		this.lastResult = "";
-		this.render("loading", "翻译中...");
+		this.render("loading", t("popup.translating"));
 		this.showAt(rect);
 	}
 
@@ -136,18 +137,18 @@ export class TranslationPopup {
 		this.actionsEl.empty();
 
 		if (this.options.showCopyButton && this.lastResult) {
-			const copyButton = this.createIconButton("copy", "复制译文");
+			const copyButton = this.createIconButton("copy", t("popup.copyTranslation"));
 			copyButton.onClickEvent(async () => {
 				await navigator.clipboard.writeText(this.lastResult);
 			});
 		}
 
 		if (this.options.showRetryButton) {
-			const retryButton = this.createIconButton("refresh-cw", "重新翻译");
+			const retryButton = this.createIconButton("refresh-cw", t("popup.retryTranslation"));
 			retryButton.onClickEvent(() => this.options.onRetry());
 		}
 
-		const closeButton = this.createIconButton("x", "关闭");
+		const closeButton = this.createIconButton("x", t("popup.close"));
 		closeButton.onClickEvent(() => this.hide());
 	}
 
@@ -156,7 +157,7 @@ export class TranslationPopup {
 
 		const sourceSelect = this.languageEl.createEl("select", {
 			cls: "pdf-ollama-translator-popup__language-select",
-			attr: { "aria-label": "源语言", title: "源语言" },
+			attr: { "aria-label": t("popup.sourceLanguage"), title: t("popup.sourceLanguage") },
 		});
 		for (const option of SOURCE_LANGUAGE_OPTIONS) {
 			sourceSelect.createEl("option", { text: option.label, value: option.value });
@@ -165,14 +166,14 @@ export class TranslationPopup {
 
 		const swapButton = this.languageEl.createEl("button", {
 			cls: "pdf-ollama-translator-popup__language-swap",
-			attr: { "aria-label": "交换语言", title: "交换语言" },
+			attr: { "aria-label": t("popup.swapLanguage"), title: t("popup.swapLanguage") },
 		});
 		setIcon(swapButton, "arrow-left-right");
 		swapButton.onpointerdown = (event) => event.preventDefault();
 
 		const targetSelect = this.languageEl.createEl("select", {
 			cls: "pdf-ollama-translator-popup__language-select",
-			attr: { "aria-label": "目标语言", title: "目标语言" },
+			attr: { "aria-label": t("popup.targetLanguage"), title: t("popup.targetLanguage") },
 		});
 		for (const option of TARGET_LANGUAGE_OPTIONS) {
 			targetSelect.createEl("option", { text: option.label, value: option.value });

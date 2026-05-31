@@ -5,6 +5,7 @@ import { PdfSelectionReader } from "./pdfSelection";
 import { PdfOllamaTranslatorSettingTab } from "./settings";
 import { PDF_OLLAMA_TRANSLATOR_VIEW_TYPE, PdfOllamaTranslatorSidebarView } from "./sidebarView";
 import { TranslationPopup } from "./translationPopup";
+import { t } from "./i18n";
 import type {
 	ConnectionTestResult,
 	PdfOllamaTranslatorSettings,
@@ -187,18 +188,18 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 					: [sourceText, translatedText].filter(Boolean).join("\n\n");
 
 		if (!value) {
-			new Notice("没有可复制的内容。");
+			new Notice(t("notice.nothingToCopy"));
 			return;
 		}
 
 		await navigator.clipboard.writeText(value);
-		new Notice("已复制。");
+		new Notice(t("notice.copied"));
 	}
 
 	async translateActiveSelectionFromSidebar(): Promise<void> {
 		const selection = this.selectionReader.readSelection();
 		if (!selection) {
-			new Notice("请先在当前 PDF 中选中文本。");
+			new Notice(t("notice.selectTextFirst"));
 			return;
 		}
 		await this.translateSelection(selection, true);
@@ -207,7 +208,7 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 	openSettingsTab(): void {
 		const setting = (this.app as AppWithSetting).setting;
 		if (!setting) {
-			new Notice("无法打开 Obsidian 设置页。");
+			new Notice(t("notice.cannotOpenSettings"));
 			return;
 		}
 		setting.open();
@@ -231,7 +232,7 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 
 		const leaf = this.app.workspace.getLeftLeaf(false);
 		if (!leaf) {
-			new Notice("无法打开翻译侧边栏。");
+			new Notice(t("notice.cannotOpenSidebar"));
 			return;
 		}
 		await leaf.setViewState({ type: PDF_OLLAMA_TRANSLATOR_VIEW_TYPE, active: true });
@@ -293,7 +294,7 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 		if (this.selectionReader.isSelectionTooLong(selection)) {
 			this.popup.showInfo(
 				selection.text,
-				`选中文本超过 ${this.settings.maxSelectionChars} 个字符。`,
+				t("notice.selectionExceedsLimit", { count: this.settings.maxSelectionChars }),
 				selection.rect,
 			);
 			return;
@@ -304,7 +305,7 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 
 	private async retryLastSelection(): Promise<void> {
 		if (!this.lastSelection) {
-			new Notice("没有可重新翻译的 PDF 选区。");
+			new Notice(t("notice.noSelectionToRetry"));
 			return;
 		}
 		await this.translateSelection(this.lastSelection, true);
@@ -404,14 +405,14 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 
 	private getMissingProviderConfigMessage(): string {
 		if (this.settings.translationProvider === "local-llm" && !this.settings.model.trim()) {
-			return "请先在插件设置中选择本地模型。";
+			return t("error.selectLocalModel");
 		}
 		if (this.settings.translationProvider === "cloud-api") {
 			if (!this.settings.cloudApiKey.trim()) {
-				return "请先在插件设置中填写 Cloud API Key。";
+				return t("error.fillApiKey");
 			}
 			if (!this.settings.cloudApiModel.trim()) {
-				return "请先在插件设置中填写 Cloud API 模型名称。";
+				return t("error.fillModelName");
 			}
 		}
 		return "";

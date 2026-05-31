@@ -2,6 +2,7 @@ import { App, DropdownComponent, Notice, PluginSettingTab, Setting } from "obsid
 import type PdfOllamaTranslatorPlugin from "./main";
 import { DEFAULT_TRANSLATION_PROMPT } from "./translatorService";
 import type { TranslationLanguage, TranslationProviderId } from "./types";
+import { t } from "./i18n";
 
 const SOURCE_LANGUAGE_OPTIONS: Array<{ value: TranslationLanguage; label: string }> = [
 	{ value: "auto", label: "Auto" },
@@ -32,9 +33,9 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 
 		containerEl.createEl("h2", { text: "LLM Translate" });
 
-		this.addSection("常规");
+		this.addSection(t("settings.section.general"));
 		new Setting(containerEl)
-			.setName("自动翻译选中文本")
+			.setName(t("settings.autoTranslateSelection"))
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.autoTranslateSelection)
@@ -44,7 +45,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("启用阅读器划词弹窗")
+			.setName(t("settings.enablePopup"))
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.enablePopup)
@@ -53,9 +54,9 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 					}),
 			);
 
-		this.addSection("服务");
+		this.addSection(t("settings.section.service"));
 		new Setting(containerEl)
-			.setName("翻译服务")
+			.setName(t("settings.translationService"))
 			.addDropdown((dropdown) =>
 				dropdown
 					.addOption("local-llm", "Local LLM")
@@ -78,7 +79,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 		}
 
 		new Setting(containerEl)
-			.setName("源语言")
+			.setName(t("settings.sourceLanguage"))
 			.addDropdown((dropdown) => {
 				for (const option of SOURCE_LANGUAGE_OPTIONS) {
 					dropdown.addOption(option.value, option.label);
@@ -91,7 +92,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("目标语言")
+			.setName(t("settings.targetLanguage"))
 			.addDropdown((dropdown) => {
 				for (const option of TARGET_LANGUAGE_OPTIONS) {
 					dropdown.addOption(option.value, option.label);
@@ -105,9 +106,9 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 					});
 			});
 
-		this.addSection("界面");
+		this.addSection(t("settings.section.interface"));
 		new Setting(containerEl)
-			.setName("字体大小")
+			.setName(t("settings.fontSize"))
 			.addText((text) => {
 				text.inputEl.type = "number";
 				text.inputEl.min = "10";
@@ -119,7 +120,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("行高")
+			.setName(t("settings.lineHeight"))
 			.addText((text) => {
 				text.inputEl.type = "number";
 				text.inputEl.min = "1";
@@ -132,7 +133,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("记住窗口大小")
+			.setName(t("settings.rememberPopupSize"))
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.rememberPopupSize)
@@ -142,7 +143,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("显示复制按钮")
+			.setName(t("settings.showCopyButton"))
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.showCopyButton)
@@ -152,7 +153,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("显示重新翻译按钮")
+			.setName(t("settings.showRetryButton"))
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.showRetryButton)
@@ -161,10 +162,10 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 					}),
 			);
 
-		this.addSection("高级");
+		this.addSection(t("settings.section.advanced"));
 		new Setting(containerEl)
-			.setName("最大选区长度")
-			.setDesc("超过该字符数的选区不会发送翻译请求。")
+			.setName(t("settings.maxSelectionChars"))
+			.setDesc(t("settings.maxSelectionCharsDesc"))
 			.addText((text) => {
 				text.inputEl.type = "number";
 				text.inputEl.min = "1";
@@ -176,8 +177,8 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("选区触发延迟")
-			.setDesc("完成选中文本后等待多久开始翻译，单位为毫秒。")
+			.setName(t("settings.debounce"))
+			.setDesc(t("settings.debounceDesc"))
 			.addText((text) => {
 				text.inputEl.type = "number";
 				text.inputEl.min = "0";
@@ -189,8 +190,8 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("请求超时")
-			.setDesc("等待本地模型返回的最长时间，单位为毫秒。")
+			.setName(t("settings.requestTimeout"))
+			.setDesc(t("settings.requestTimeoutDesc"))
 			.addText((text) => {
 				text.inputEl.type = "number";
 				text.inputEl.min = "1000";
@@ -202,8 +203,8 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("自定义 Prompt")
-			.setDesc("默认 Prompt 已填入此处，可直接修改保存。")
+			.setName(t("settings.customPrompt"))
+			.setDesc(t("settings.customPromptDesc"))
 			.addTextArea((text) => {
 				text.inputEl.rows = 5;
 				text.inputEl.addClass("pdf-ollama-translator-settings__textarea");
@@ -220,8 +221,8 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 		}
 
 		new Setting(containerEl)
-			.setName("清理译文中的空行、thinking 和多余文本")
-			.setDesc("自动移除引号、代码块、翻译标签和 thinking 残留。")
+			.setName(t("settings.cleanOutput"))
+			.setDesc(t("settings.cleanOutputDesc"))
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.cleanModelOutput)
@@ -231,8 +232,8 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("调试日志")
-			.setDesc("在开发者控制台输出请求状态和错误摘要。")
+			.setName(t("settings.debugLogging"))
+			.setDesc(t("settings.debugLoggingDesc"))
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.debugLogging)
@@ -244,7 +245,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 
 	private renderLocalServiceSettings(containerEl: HTMLElement): void {
 		new Setting(containerEl)
-			.setName("本地模型端口")
+			.setName(t("settings.localEndpoint"))
 			.addText((text) =>
 				text
 					.setPlaceholder("http://127.0.0.1:11434")
@@ -256,10 +257,10 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 
 		let modelDropdown: DropdownComponent | undefined;
 		new Setting(containerEl)
-			.setName("模型名称")
+			.setName(t("settings.modelName"))
 			.addDropdown((dropdown) => {
 				modelDropdown = dropdown;
-				dropdown.addOption("", "选择模型");
+				dropdown.addOption("", t("settings.selectModel"));
 				if (this.plugin.settings.model) {
 					dropdown.addOption(this.plugin.settings.model, this.plugin.settings.model);
 				}
@@ -277,7 +278,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 
 	private renderCloudServiceSettings(containerEl: HTMLElement): void {
 		new Setting(containerEl)
-			.setName("API 类型")
+			.setName(t("settings.apiType"))
 			.addDropdown((dropdown) =>
 				dropdown
 					.addOption("openai-compatible", "OpenAI Compatible")
@@ -285,7 +286,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("API 地址")
+			.setName(t("settings.apiUrl"))
 			.addText((text) =>
 				text
 					.setPlaceholder("https://api.deepseek.com")
@@ -296,7 +297,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("API Key")
+			.setName(t("settings.apiKey"))
 			.addText((text) => {
 				text.inputEl.type = "password";
 				text
@@ -308,7 +309,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("模型名称")
+			.setName(t("settings.modelName"))
 			.addText((text) =>
 				text
 					.setPlaceholder("deepseek-chat")
@@ -322,14 +323,14 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 
 	private renderDirectServiceSettings(containerEl: HTMLElement): void {
 		new Setting(containerEl)
-			.setName("连接测试")
+			.setName(t("settings.connectionTest"))
 			.addButton((button) => this.bindTestButton(button));
 	}
 
 	private renderLocalAdvancedSettings(containerEl: HTMLElement): void {
 		new Setting(containerEl)
 			.setName("Top K")
-			.setDesc("限制候选 token 数量。")
+			.setDesc(t("settings.topKDesc"))
 			.addText((text) => {
 				text.inputEl.type = "number";
 				text.inputEl.min = "1";
@@ -342,7 +343,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Top P")
-			.setDesc("控制 nucleus sampling 范围。")
+			.setDesc(t("settings.topPDesc"))
 			.addText((text) => {
 				text.inputEl.type = "number";
 				text.inputEl.min = "0";
@@ -357,7 +358,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Repeat Penalty")
-			.setDesc("降低重复输出的概率。")
+			.setDesc(t("settings.repeatPenaltyDesc"))
 			.addText((text) => {
 				text.inputEl.type = "number";
 				text.inputEl.min = "0";
@@ -371,7 +372,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Num Predict")
-			.setDesc("单次请求允许生成的最大 token 数。")
+			.setDesc(t("settings.numPredictDesc"))
 			.addText((text) => {
 				text.inputEl.type = "number";
 				text.inputEl.min = "1";
@@ -385,11 +386,11 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 
 	private bindTestButton(button: import("obsidian").ButtonComponent): import("obsidian").ButtonComponent {
 		return button
-			.setButtonText("测试")
+			.setButtonText(t("settings.test"))
 			.onClick(async () => {
-				button.setDisabled(true).setButtonText("测试中...");
+				button.setDisabled(true).setButtonText(t("settings.testing"));
 				const result = await this.plugin.testConnection();
-				button.setDisabled(false).setButtonText("测试");
+				button.setDisabled(false).setButtonText(t("settings.test"));
 				new Notice(result.message);
 			});
 	}
@@ -399,7 +400,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			const currentModel = this.plugin.settings.model;
 			const models = await this.plugin.listModels();
 			dropdown.selectEl.empty();
-			dropdown.addOption("", "选择模型");
+			dropdown.addOption("", t("settings.selectModel"));
 			for (const model of models) {
 				dropdown.addOption(model, model);
 			}

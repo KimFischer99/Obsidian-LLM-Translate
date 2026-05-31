@@ -6,6 +6,7 @@ import type {
 	TranslationLanguage,
 	TranslationProviderId,
 } from "./types";
+import { t } from "./i18n";
 
 interface OllamaChatResponse {
 	message?: {
@@ -82,7 +83,7 @@ export class TranslatorService {
 		const settings = this.getSettings();
 		const model = settings.model.trim();
 		if (!model) {
-			throw new Error("请先在插件设置中选择本地模型。");
+			throw new Error(t("error.selectLocalModel"));
 		}
 
 		const startedAt = performance.now();
@@ -116,7 +117,7 @@ export class TranslatorService {
 
 		const rawContent = data.message?.content?.trim() ?? "";
 		if (!rawContent) {
-			throw new Error("Ollama 返回了空译文。");
+			throw new Error(t("error.ollamaReturnedEmpty"));
 		}
 
 		return {
@@ -132,10 +133,10 @@ export class TranslatorService {
 		const apiKey = settings.cloudApiKey.trim();
 		const model = settings.cloudApiModel.trim();
 		if (!apiKey) {
-			throw new Error("请先在插件设置中填写 Cloud API Key。");
+			throw new Error(t("error.fillApiKey"));
 		}
 		if (!model) {
-			throw new Error("请先在插件设置中填写 Cloud API 模型名称。");
+			throw new Error(t("error.fillModelName"));
 		}
 
 		const startedAt = performance.now();
@@ -164,12 +165,12 @@ export class TranslatorService {
 
 		const data = (await response.json()) as CloudChatResponse;
 		if (data.error) {
-			throw new Error(data.error.message ?? "Cloud API 返回错误。");
+			throw new Error(data.error.message ?? t("error.cloudApiError"));
 		}
 
 		const rawContent = data.choices?.[0]?.message?.content?.trim() ?? "";
 		if (!rawContent) {
-			throw new Error("Cloud API 返回了空译文。");
+			throw new Error(t("error.cloudApiReturnedEmpty"));
 		}
 
 		return {
@@ -202,7 +203,7 @@ export class TranslatorService {
 		const data = await response.json() as unknown;
 		const translatedText = parseGoogleResponse(data);
 		if (!translatedText) {
-			throw new Error("Google 返回了空译文。");
+			throw new Error(t("error.googleReturnedEmpty"));
 		}
 		return {
 			sourceText: request.text,
@@ -243,7 +244,7 @@ export class TranslatorService {
 		const data = await response.json() as unknown;
 		const translatedText = parseBingResponse(data);
 		if (!translatedText) {
-			throw new Error("Bing 返回了空译文。");
+			throw new Error(t("error.bingReturnedEmpty"));
 		}
 		return {
 			sourceText: request.text,
@@ -263,7 +264,7 @@ export class TranslatorService {
 					targetLanguage: "zh-Hans",
 					allowedSourceLanguages: ["en", "de", "fr", "ja", "zh-Hans"],
 				});
-				return { ok: true, message: `${getProviderLabel(provider)} 连接成功：${result.translatedText}` };
+				return { ok: true, message: t("error.connectionSuccess", { provider: getProviderLabel(provider), result: result.translatedText }) };
 			} catch (error) {
 				return { ok: false, message: this.toReadableError(error) };
 			}
@@ -272,7 +273,7 @@ export class TranslatorService {
 		const settings = this.getSettings();
 		const model = settings.model.trim();
 		if (!model) {
-			return { ok: false, message: "模型名称为空。" };
+			return { ok: false, message: t("error.modelNameEmpty") };
 		}
 
 		try {
@@ -293,11 +294,11 @@ export class TranslatorService {
 			if (!hasModel) {
 				return {
 					ok: false,
-					message: `已连接 Ollama，但没有找到模型“${model}”。`,
+					message: t("error.ollamaConnectedButModelNotFound", { model }),
 				};
 			}
 
-			return { ok: true, message: `连接成功，模型“${model}”可用。` };
+			return { ok: true, message: t("error.modelAvailable", { model }) };
 		} catch (error) {
 			return { ok: false, message: this.toReadableError(error) };
 		}
@@ -325,15 +326,15 @@ export class TranslatorService {
 
 	toReadableError(error: unknown): string {
 		if (error instanceof DOMException && error.name === "AbortError") {
-			return "请求超时或已取消。";
+			return t("error.timeout");
 		}
 		if (error instanceof TypeError) {
-			return "无法连接 Ollama。请检查地址，并确认 Ollama 正在运行。";
+			return t("error.cannotConnectOllama");
 		}
 		if (error instanceof Error) {
 			return error.message;
 		}
-		return "未知翻译错误。";
+		return t("error.unknownError");
 	}
 
 	private getChatUrl(baseUrl: string): string {
@@ -365,7 +366,7 @@ export class TranslatorService {
 		}
 		const token = (await response.text()).trim();
 		if (!token) {
-			throw new Error("Bing Auth 返回了空 token。");
+			throw new Error(t("error.bingAuthEmptyToken"));
 		}
 		return token;
 	}
@@ -412,7 +413,7 @@ export class TranslatorService {
 	private async toHttpError(response: Response, service: string): Promise<string> {
 		const text = await response.text();
 		if (!text) {
-			return `${service} 请求失败，HTTP ${response.status}。`;
+			return t("error.httpRequestFailed", { service, status: response.status });
 		}
 
 		try {
@@ -420,9 +421,9 @@ export class TranslatorService {
 			if (typeof data.error === "string") {
 				return data.error;
 			}
-			return data.error?.message ?? `${service} 请求失败，HTTP ${response.status}。`;
+			return data.error?.message ?? t("error.httpRequestFailed", { service, status: response.status });
 		} catch {
-			return `${service} 请求失败，HTTP ${response.status}: ${text}`;
+			return t("error.httpRequestFailedWithBody", { service, status: response.status, body: text });
 		}
 	}
 

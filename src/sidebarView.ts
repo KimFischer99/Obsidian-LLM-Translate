@@ -1,6 +1,7 @@
 import { ItemView, Notice, WorkspaceLeaf, setIcon } from "obsidian";
 import type PdfOllamaTranslatorPlugin from "./main";
 import type { TranslationLanguage, TranslationProviderId } from "./types";
+import { t } from "./i18n";
 
 export const PDF_OLLAMA_TRANSLATOR_VIEW_TYPE = "pdf-ollama-translator-sidebar";
 
@@ -38,11 +39,11 @@ export class PdfOllamaTranslatorSidebarView extends ItemView {
 		const titleEl = headerEl.createDiv({ cls: "pdf-ollama-translator-sidebar__title" });
 		const iconEl = titleEl.createSpan({ cls: "pdf-ollama-translator-sidebar__title-icon" });
 		setIcon(iconEl, "languages");
-		titleEl.createSpan({ text: "Translate" });
+		titleEl.createSpan({ text: t("sidebar.title") });
 
 		const openSettingsButton = headerEl.createEl("button", {
 			cls: "pdf-ollama-translator-sidebar__icon-button",
-			attr: { title: "打开详细设置", "aria-label": "打开详细设置" },
+			attr: { title: t("sidebar.openSettings"), "aria-label": t("sidebar.openSettings") },
 		});
 		setIcon(openSettingsButton, "settings");
 		openSettingsButton.onClickEvent(() => this.plugin.openSettingsTab());
@@ -57,7 +58,7 @@ export class PdfOllamaTranslatorSidebarView extends ItemView {
 		const rowEl = container.createDiv({ cls: "pdf-ollama-translator-sidebar__service-row" });
 		const providerEl = rowEl.createEl("select", {
 			cls: "pdf-ollama-translator-sidebar__select",
-			attr: { title: this.plugin.getActiveProviderLabel(), "aria-label": "翻译服务" },
+			attr: { title: this.plugin.getActiveProviderLabel(), "aria-label": t("sidebar.translationService") },
 		});
 		for (const option of [
 			{ value: "local-llm", label: "Local LLM" },
@@ -74,7 +75,7 @@ export class PdfOllamaTranslatorSidebarView extends ItemView {
 
 		const testButton = rowEl.createEl("button", {
 			cls: "pdf-ollama-translator-sidebar__icon-button",
-			attr: { title: "测试连接", "aria-label": "测试连接" },
+			attr: { title: t("sidebar.testConnection"), "aria-label": t("sidebar.testConnection") },
 		});
 		setIcon(testButton, "plug-zap");
 		testButton.onClickEvent(async () => {
@@ -85,7 +86,7 @@ export class PdfOllamaTranslatorSidebarView extends ItemView {
 		});
 
 		const translateButton = rowEl.createEl("button", {
-			text: "Translate",
+			text: t("sidebar.translate"),
 			cls: "pdf-ollama-translator-sidebar__primary-button",
 		});
 		translateButton.onClickEvent(() => void this.plugin.translateActiveSelectionFromSidebar());
@@ -134,17 +135,17 @@ export class PdfOllamaTranslatorSidebarView extends ItemView {
 		const state = this.plugin.getSidebarState();
 
 		const sourceEl = container.createDiv({ cls: "pdf-ollama-translator-sidebar__panel" });
-		sourceEl.setText(state.sourceText || "Raw text");
+		sourceEl.setText(state.sourceText || t("sidebar.rawText"));
 		sourceEl.toggleClass("is-placeholder", !state.sourceText);
 
 		const resultEl = container.createDiv({ cls: "pdf-ollama-translator-sidebar__panel pdf-ollama-translator-sidebar__panel--result" });
 		if (state.status === "loading") {
-			resultEl.setText("翻译中...");
+			resultEl.setText(t("sidebar.translating"));
 		} else if (state.status === "error") {
-			resultEl.setText(state.message || "翻译失败。");
+			resultEl.setText(state.message || t("sidebar.translationFailed"));
 			resultEl.addClass("is-error");
 		} else {
-			resultEl.setText(state.translatedText || "Translation");
+			resultEl.setText(state.translatedText || t("sidebar.translation"));
 			resultEl.toggleClass("is-placeholder", !state.translatedText);
 		}
 	}
@@ -153,10 +154,10 @@ export class PdfOllamaTranslatorSidebarView extends ItemView {
 		const controlsEl = container.createDiv({ cls: "pdf-ollama-translator-sidebar__controls" });
 
 		const autoRowEl = controlsEl.createDiv({ cls: "pdf-ollama-translator-sidebar__control-row" });
-		autoRowEl.createSpan({ text: "Auto-Trans", cls: "pdf-ollama-translator-sidebar__control-label" });
+		autoRowEl.createSpan({ text: t("sidebar.autoTrans"), cls: "pdf-ollama-translator-sidebar__control-label" });
 		const autoToggle = autoRowEl.createEl("input", {
 			cls: "pdf-ollama-translator-sidebar__toggle",
-			attr: { type: "checkbox", "aria-label": "自动翻译选区" },
+			attr: { type: "checkbox", "aria-label": t("sidebar.autoTransLabel") },
 		});
 		autoToggle.checked = this.plugin.settings.autoTranslateSelection;
 		autoToggle.onchange = async () => {
@@ -165,20 +166,20 @@ export class PdfOllamaTranslatorSidebarView extends ItemView {
 		};
 
 		const selectionRowEl = controlsEl.createDiv({ cls: "pdf-ollama-translator-sidebar__control-row" });
-		selectionRowEl.createSpan({ text: "Selection", cls: "pdf-ollama-translator-sidebar__control-label" });
+		selectionRowEl.createSpan({ text: t("sidebar.selection"), cls: "pdf-ollama-translator-sidebar__control-label" });
 		selectionRowEl.createEl("button", {
-			text: "Clear",
+			text: t("sidebar.clear"),
 			cls: "pdf-ollama-translator-sidebar__clear-button",
 		}).onClickEvent(() => {
 			this.plugin.clearSidebarState();
 		});
 
 		const copyRowEl = controlsEl.createDiv({ cls: "pdf-ollama-translator-sidebar__copy-row" });
-		copyRowEl.createSpan({ text: "Copy:", cls: "pdf-ollama-translator-sidebar__copy-label" });
+		copyRowEl.createSpan({ text: t("sidebar.copy"), cls: "pdf-ollama-translator-sidebar__copy-label" });
 		for (const item of [
-			{ label: "Raw", action: () => this.plugin.copySidebarText("raw") },
-			{ label: "Result", action: () => this.plugin.copySidebarText("result") },
-			{ label: "Both", action: () => this.plugin.copySidebarText("both") },
+			{ label: t("sidebar.raw"), action: () => this.plugin.copySidebarText("raw") },
+			{ label: t("sidebar.result"), action: () => this.plugin.copySidebarText("result") },
+			{ label: t("sidebar.both"), action: () => this.plugin.copySidebarText("both") },
 		]) {
 			copyRowEl.createEl("button", {
 				text: item.label,
