@@ -225,10 +225,11 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 
 	private async activateSidebarView(): Promise<void> {
 		this.popup.hide();
+
+		// Detach any existing leaves first to force right-side creation
 		const existingLeaves = this.app.workspace.getLeavesOfType(PDF_OLLAMA_TRANSLATOR_VIEW_TYPE);
-		if (existingLeaves.length > 0) {
-			this.app.workspace.revealLeaf(existingLeaves[0]);
-			return;
+		for (const leaf of existingLeaves) {
+			leaf.detach();
 		}
 
 		const leaf = this.app.workspace.getRightLeaf(false);
