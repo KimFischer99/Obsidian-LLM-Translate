@@ -1,71 +1,81 @@
-# LLM Translator
+<p align="center">
+  <img src="assets/screenshot.png" alt="LLM Translator Screenshot" width="720" style="border-radius: 8px;">
+</p>
 
-一款基于本地大模型驱动的 Obsidian 划词翻译插件，支持 PDF 和 Markdown 文件的实时翻译。
+<h1 align="center">LLM Translator</h1>
 
-## 定位
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-Obsidian%20Desktop-purple" alt="Platform">
+  <img src="https://img.shields.io/github/v/release/KimFischer99/Obsidian-LLM-Translate" alt="Version">
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
+  <img src="https://img.shields.io/badge/language-Chinese%20%7C%20English-green" alt="Languages">
+</p>
 
-LLM Translator 的核心定位是**本地优先、隐私友好**的翻译工具。通过连接本地部署的大语言模型（如 Ollama），实现无需联网、无数据泄露的高质量翻译体验。同时也支持接入云端 API 和免费翻译服务，满足不同场景需求。
+<p align="center">
+  <a href="#功能特性">功能特性</a> •
+  <a href="#快速开始">快速开始</a> •
+  <a href="#推荐配置">推荐配置</a> •
+  <a href="#使用指南">使用指南</a> •
+  <a href="#其他翻译服务">其他翻译服务</a> •
+  <a href="#windows-注意事项">Windows 注意事项</a> •
+  <a href="#常见问题">常见问题</a> •
+  <a href="#开发">开发</a>
+</p>
+
+<p align="center">一款基于本地大模型驱动的 Obsidian 划词翻译插件，支持 PDF 和 Markdown 文件的实时翻译。</p>
+
+---
 
 ## 功能特性
 
-- **多源翻译支持**
-  - 本地大模型（Ollama）
-  - 云端 API（OpenAI 兼容格式）
-  - Google 翻译（免费）
-  - Bing 翻译（免费）
+### 📌 多源翻译支持
 
-- **多格式文档支持**
-  - PDF 文件划词翻译（默认）
-  - Markdown 编辑器划词翻译（需在设置中开启"全局"模式）
+- **本地大模型（Ollama）** — 隐私安全，离线可用，无调用限制
+- **云端 API（OpenAI 兼容格式）** — 接入 DeepSeek、OpenRouter 等服务商
+- **Google 翻译 / Bing 翻译** — 无需配置，一键切换
 
-- **智能交互**
-  - 选中文本自动弹出翻译窗口
-  - 侧边栏翻译面板，支持手动输入
-  - 复制译文、重试翻译、语言切换
-  - 自定义翻译 Prompt
+### 📄 多格式文档支持
 
-- **多语言界面**
-  - 跟随 Obsidian 系统语言自动切换
-  - 支持中文、英文界面
+- **PDF 文档** — 默认支持，选中文本自动翻译
+- **Markdown 文档** — 在设置中开启"全局"模式后支持
 
-## 推荐配置：使用 Ollama 本地模型
+### 🎯 智能交互
 
-### 为什么推荐本地模型？
+- 选中文本自动弹出翻译窗口
+- 侧边栏翻译面板，支持手动输入
+- 复制译文 / 重试翻译 / 一键切换语言
+- 自定义翻译 Prompt，满足专业需求
 
-- **隐私安全**：文本不离开本机，适合翻译敏感文档
-- **离线可用**：无需网络连接
-- **无调用限制**：不限次数，完全免费
+### 🌐 多语言界面
 
-### 第一步：安装 Ollama
+- 自动跟随 Obsidian 系统语言
+- 支持简体中文 / English 界面
 
-访问 [Ollama 官网](https://ollama.com/) 下载并安装适合你系统的版本。
+---
 
-**macOS / Linux：**
+## 快速开始
+
 ```bash
+# 1. 安装 Ollama（macOS / Linux）
 curl -fsSL https://ollama.com/install.sh | sh
-```
 
-**Windows：**
-从官网下载安装包，按提示完成安装。安装完成后 Ollama 会自动运行在后台。
-
-### 第二步：拉取翻译模型
-
-推荐使用腾讯开源的 HY-MT2-1.8B 翻译模型，体积小、翻译质量高：
-
-```bash
+# 2. 拉取翻译模型（推荐 HY-MT2-1.8B）
 ollama pull RogerBen/HY-MT2-1.8B:latest
+
+# 3. 安装插件后，在设置中选择 Local LLM
+#    填入端口 http://localhost:11434 和模型名称
+#    点击测试验证连接
 ```
 
-> 💡 该模型约 1.5GB，首次下载需要一些时间。下载完成后即可离线使用。
+> 💡 **Windows 用户**：请从 [Ollama 官网](https://ollama.com/) 下载安装包，安装后 Ollama 自动在后台运行。
 
-### 第三步：配置插件
+---
 
-1. 打开 Obsidian，进入 **设置 → 社区插件**
-2. 启用 **LLM Translator**
-3. 点击插件设置图标，进入设置页面
-4. 按照以下推荐配置填写：
+## 推荐配置
 
-**常规设置**
+插件安装后，请按以下配置填写：
+
+### 常规设置
 
 | 设置项 | 推荐值 |
 |--------|--------|
@@ -73,7 +83,7 @@ ollama pull RogerBen/HY-MT2-1.8B:latest
 | 自动翻译选中文本 | 开启 |
 | 启用阅读器划词弹窗 | 开启 |
 
-**服务设置**
+### 服务设置
 
 | 设置项 | 推荐值 |
 |--------|--------|
@@ -83,114 +93,105 @@ ollama pull RogerBen/HY-MT2-1.8B:latest
 | 源语言 | Auto |
 | 目标语言 | 简体中文 |
 
-**高级设置**
+### 高级设置
 
 | 设置项 | 推荐值 |
 |--------|--------|
 | 最大选区长度 | 5000 |
-| 选区触发延迟 | 350 |
-| 请求超时 | 30000 |
+| 选区触发延迟 | 350 毫秒 |
+| 请求超时 | 30000 毫秒 |
 | Top K | 20 |
 | Top P | 0.6 |
 | Repeat Penalty | 1.05 |
 | Num Predict | 4096 |
 
-5. 点击 **测试** 按钮验证连接
-
-### 第四步：测试翻译
-
-1. 打开任意 PDF 文件或 Markdown 文件
-2. 选中一段文本
-3. 翻译弹窗应自动出现，显示翻译结果
-
-## 其他翻译服务配置
-
-### 云端 API（OpenAI 兼容格式）
-
-支持任何兼容 OpenAI 格式的 API 服务商。
-
-配置步骤：
-1. 在插件设置中选择 **Cloud API** 服务
-2. 填入对应的 API 地址和 API Key
-3. 填入模型名称
-4. 点击 **测试** 验证连接
-
-### Google 翻译 / Bing 翻译
-
-无需任何配置，直接在翻译服务下拉菜单中选择即可使用。
-
-> ⚠️ 免费翻译服务可能存在调用频率限制，大量使用时建议切换到本地模型或云端 API。
+---
 
 ## 使用指南
 
 ### 基本操作
 
-- **自动翻译**：选中文本后自动弹出翻译窗口（可在设置中关闭）
-- **侧边栏**：点击左侧工具栏的语言图标打开翻译面板
-- **手动翻译**：在侧边栏输入文本，点击 Translate 按钮
+1. **自动翻译** — 选中 PDF 或 Markdown 文本，翻译弹窗自动出现
+2. **侧边栏** — 点击左侧工具栏语言图标，打开右侧翻译面板
+3. **手动翻译** — 在侧边栏输入文本，点击 Translate 按钮
 
 ### 翻译范围设置
 
-在 **设置 → 常规 → 翻译范围** 中选择：
-
-- **全局**：PDF 和 Markdown 文件都可划词翻译
-- **仅 PDF**：只在 PDF 文件中启用划词翻译（默认）
+- **全局** — PDF 和 Markdown 文件均可划词翻译
+- **仅 PDF** — 只在 PDF 文件中启用（默认）
 
 ### 侧边栏功能
 
-- **翻译服务切换**：快速切换不同的翻译服务
-- **语言选择**：设置源语言和目标语言
-- **Auto-Trans**：开关自动翻译功能
-- **复制按钮**：复制原文、译文或全部
-- **Clear**：清空当前翻译记录
+- **翻译服务切换** — 快速切换 Local LLM / Cloud API / Google / Bing
+- **语言选择** — 设置源语言和目标语言
+- **Auto-Trans** — 开启/关闭自动翻译
+- **Copy** — 复制原文（Raw）、译文（Result）或全部（Both）
+- **Clear** — 清空当前翻译记录
 
 ### 自定义 Prompt
 
-在 **设置 → 高级 → 自定义 Prompt** 中可以修改翻译提示词，以获得更符合你需求的翻译效果。
+在 **设置 → 高级 → 自定义 Prompt** 中修改翻译提示词：
 
-例如，如果你主要翻译学术论文，可以添加：
 ```
-Translate the following academic text. Preserve technical terminology, citations, and formulas. Output only the translation.
+Translate the following academic text. Preserve technical terminology,
+citations, and formulas. Output only the translation.
 ```
 
-### 高级参数（Ollama 本地模型）
+---
 
-- **Top K**：限制候选 token 数量（默认 20）
-- **Top P**：控制 nucleus sampling 范围（默认 0.6）
-- **Repeat Penalty**：降低重复输出概率（默认 1.05）
-- **Num Predict**：单次请求最大生成 token 数（默认 4096）
+## 其他翻译服务
 
-> 💡 这些参数通常保持默认即可。如需调整，建议参考 Ollama 官方文档。
+### 云端 API（OpenAI 兼容格式）
 
-## Windows 系统注意事项
+支持任意兼容 OpenAI 格式的 API：
 
-本插件主要基于 macOS 开发和测试，Windows 用户需注意以下事项：
+| 配置项 | 说明 |
+|--------|------|
+| API 地址 | 服务商提供的接口地址 |
+| API Key | 服务商分配的密钥 |
+| 模型名称 | 服务商支持的模型标识 |
+
+### Google 翻译 / Bing 翻译
+
+无需任何配置，在翻译服务下拉菜单中直接选择即可使用。
+
+> ⚠️ 免费翻译服务存在调用频率限制，大量使用建议切换至本地模型或云端 API。
+
+---
+
+## Windows 注意事项
 
 ### Ollama 安装
 
-- Windows 版本的 Ollama 安装后会自动运行在后台
-- 默认端口与 macOS 相同：`http://localhost:11434`
-- 如遇到连接问题，检查 Windows 防火墙是否阻止了本地连接
+- 从 [Ollama 官网](https://ollama.com/) 下载 Windows 版安装包
+- 安装后自动在后台运行，端口与 macOS 相同：`http://localhost:11434`
+- 如遇连接问题，检查 Windows 防火墙是否阻止了本地连接
 
-### 路径问题
+### 路径格式
 
-- Windows 路径使用反斜杠 `\`，但插件配置中的 URL 路径应使用正斜杠 `/`
-- 示例：`http://localhost:11434`（正确），不要写成 `http://localhost:11434\`
+- URL 路径使用正斜杠 `/`：`http://localhost:11434`（正确）
+- 不要使用反斜杠：`http://localhost:11434\`（错误）
 
-### 常见问题
+---
 
-1. **测试连接失败**
-   - 确认 Ollama 已启动（任务栏应有 Ollama 图标）
-   - 尝试在浏览器访问 `http://localhost:11434` 确认服务正常
-   - 检查是否有其他程序占用了 11434 端口
+## 常见问题
 
-2. **翻译弹窗不显示**
-   - 确认已在设置中启用"自动翻译选中文本"
-   - 确认已启用"启用阅读器划词弹窗"
-   - 尝试重启 Obsidian
+### 测试连接失败？
 
-3. **Markdown 文件无法翻译**
-   - 确认已在设置中将"翻译范围"设为"全局"
+1. 确认 Ollama 已启动（任务栏应有 Ollama 图标）
+2. 在浏览器访问 `http://localhost:11434` 确认服务正常
+3. 检查是否有其他程序占用了 11434 端口
+
+### 翻译弹窗不显示？
+
+- 确认已启用"自动翻译选中文本"和"启用阅读器划词弹窗"
+- 尝试重启 Obsidian
+
+### Markdown 文件无法翻译？
+
+- 将"翻译范围"设置为"全局"
+
+---
 
 ## 开发
 
@@ -211,6 +212,8 @@ npm run build
 YourVault/.obsidian/plugins/llm-translator/
 ```
 
-## 许可证
+---
 
-MIT License
+## 许可
+
+MIT License © 2026

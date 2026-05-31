@@ -1,71 +1,81 @@
-# LLM Translator
+<p align="center">
+  <img src="assets/screenshot.png" alt="LLM Translator Screenshot" width="720" style="border-radius: 8px;">
+</p>
 
-A local LLM-powered translation plugin for Obsidian, supporting real-time text selection translation in PDF and Markdown files.
+<h1 align="center">LLM Translator</h1>
 
-## Positioning
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-Obsidian%20Desktop-purple" alt="Platform">
+  <img src="https://img.shields.io/github/v/release/KimFischer99/Obsidian-LLM-Translate" alt="Version">
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
+  <img src="https://img.shields.io/badge/language-Chinese%20%7C%20English-green" alt="Languages">
+</p>
 
-LLM Translator is designed as a **local-first, privacy-friendly** translation tool. By connecting to locally deployed large language models (like Ollama), it enables high-quality translation without internet connection or data leakage. It also supports cloud APIs and free translation services for different use cases.
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#recommended-settings">Recommended Settings</a> •
+  <a href="#usage-guide">Usage Guide</a> •
+  <a href="#other-translation-services">Other Services</a> •
+  <a href="#windows-notes">Windows Notes</a> •
+  <a href="#faq">FAQ</a> •
+  <a href="#development">Development</a>
+</p>
+
+<p align="center">A local LLM-powered translation plugin for Obsidian, supporting real-time text selection translation in PDF and Markdown files.</p>
+
+---
 
 ## Features
 
-- **Multiple Translation Sources**
-  - Local LLM (Ollama)
-  - Cloud API (OpenAI-compatible format)
-  - Google Translate (free)
-  - Bing Translate (free)
+### 📌 Multiple Translation Sources
 
-- **Multi-format Document Support**
-  - PDF text selection translation (default)
-  - Markdown editor text selection translation (enable "Global" mode in settings)
+- **Local LLM (Ollama)** — Private, offline, unlimited usage
+- **Cloud API (OpenAI-Compatible)** — Connect DeepSeek, OpenRouter, and more
+- **Google Translate / Bing Translate** — No config needed, one-click switch
 
-- **Smart Interaction**
-  - Auto-popup translation window on text selection
-  - Sidebar translation panel for manual input
-  - Copy translation, retry, language switching
-  - Custom translation prompt
+### 📄 Multi-format Document Support
 
-- **Multi-language Interface**
-  - Automatically follows Obsidian system language
-  - Supports Chinese and English interface
+- **PDF Documents** — Default support, auto-translate on selection
+- **Markdown Documents** — Enable "Global" mode in settings
 
-## Recommended Setup: Using Ollama Local Model
+### 🎯 Smart Interaction
 
-### Why Local Models?
+- Auto-popup translation window on text selection
+- Sidebar translation panel for manual input
+- Copy / Retry / One-click language switch
+- Custom translation prompt for professional needs
 
-- **Privacy**: Text never leaves your machine, ideal for sensitive documents
-- **Offline**: No internet connection required
-- **Unlimited**: No call limits, completely free
+### 🌐 Multi-language Interface
 
-### Step 1: Install Ollama
+- Automatically follows Obsidian system language
+- Supports Chinese / English interface
 
-Visit [Ollama website](https://ollama.com/) to download and install the version for your system.
+---
 
-**macOS / Linux:**
+## Quick Start
+
 ```bash
+# 1. Install Ollama (macOS / Linux)
 curl -fsSL https://ollama.com/install.sh | sh
-```
 
-**Windows:**
-Download the installer from the official website and follow the prompts. Ollama will automatically run in the background after installation.
-
-### Step 2: Pull Translation Model
-
-We recommend Tencent's open-source HY-MT2-1.8B translation model, which is small in size and high in quality:
-
-```bash
+# 2. Pull translation model (recommended HY-MT2-1.8B)
 ollama pull RogerBen/HY-MT2-1.8B:latest
+
+# 3. After installing the plugin, select Local LLM in settings
+#    Enter endpoint http://localhost:11434 and model name
+#    Click Test to verify connection
 ```
 
-> 💡 This model is about 1.5GB. The first download may take some time. Once downloaded, it can be used offline.
+> 💡 **Windows Users**: Download the installer from the [Ollama website](https://ollama.com/). Ollama will run automatically in the background after installation.
 
-### Step 3: Configure Plugin
+---
 
-1. Open Obsidian, go to **Settings → Community plugins**
-2. Enable **LLM Translator**
-3. Click the plugin settings icon to open the settings page
-4. Fill in the following recommended settings:
+## Recommended Settings
 
-**General Settings**
+After installing the plugin, configure as follows:
+
+### General Settings
 
 | Setting | Recommended Value |
 |---------|-------------------|
@@ -73,7 +83,7 @@ ollama pull RogerBen/HY-MT2-1.8B:latest
 | Auto-translate selected text | Enabled |
 | Enable reader selection popup | Enabled |
 
-**Service Settings**
+### Service Settings
 
 | Setting | Recommended Value |
 |---------|-------------------|
@@ -83,114 +93,106 @@ ollama pull RogerBen/HY-MT2-1.8B:latest
 | Source language | Auto |
 | Target language | 简体中文 |
 
-**Advanced Settings**
+### Advanced Settings
 
 | Setting | Recommended Value |
 |---------|-------------------|
 | Max selection length | 5000 |
-| Selection trigger delay | 350 |
-| Request timeout | 30000 |
+| Selection trigger delay | 350ms |
+| Request timeout | 30000ms |
 | Top K | 20 |
 | Top P | 0.6 |
 | Repeat Penalty | 1.05 |
 | Num Predict | 4096 |
 
-5. Click **Test** button to verify connection
-
-### Step 4: Test Translation
-
-1. Open any PDF or Markdown file
-2. Select some text
-3. The translation popup should appear automatically with the translation result
-
-## Other Translation Service Configuration
-
-### Cloud API (OpenAI-Compatible Format)
-
-Supports any API service provider compatible with OpenAI format.
-
-Configuration steps:
-1. Select **Cloud API** service in plugin settings
-2. Enter the corresponding API URL and API Key
-3. Enter the model name
-4. Click **Test** to verify connection
-
-### Google Translate / Bing Translate
-
-No configuration needed. Simply select from the translation service dropdown menu.
-
-> ⚠️ Free translation services may have rate limits. For heavy usage, consider switching to local models or cloud APIs.
+---
 
 ## Usage Guide
 
 ### Basic Operations
 
-- **Auto-translate**: Translation popup appears automatically after text selection (can be disabled in settings)
-- **Sidebar**: Click the language icon in the left toolbar to open the translation panel
-- **Manual translation**: Enter text in the sidebar and click the Translate button
+1. **Auto-translate** — Select text in PDF or Markdown, translation popup appears automatically
+2. **Sidebar** — Click the language icon on the left toolbar to open the right-side translation panel
+3. **Manual translate** — Enter text in the sidebar and click Translate
 
-### Translation Scope Setting
+### Translation Scope
 
-In **Settings → General → Translation scope**, choose:
-
-- **Global**: Both PDF and Markdown files support text selection translation
-- **PDF only**: Only enable text selection translation in PDF files (default)
+- **Global** — Both PDF and Markdown support selection translation
+- **PDF only** — Only enable in PDF files (default)
 
 ### Sidebar Features
 
-- **Translation service switch**: Quickly switch between different translation services
-- **Language selection**: Set source and target languages
-- **Auto-Trans**: Toggle auto-translation feature
-- **Copy buttons**: Copy source text, translation, or both
-- **Clear**: Clear current translation history
+- **Translation service switch** — Quickly switch Local LLM / Cloud API / Google / Bing
+- **Language selection** — Set source and target languages
+- **Auto-Trans** — Toggle auto-translation
+- **Copy** — Copy source (Raw), translation (Result), or Both
+- **Clear** — Clear current translation history
 
 ### Custom Prompt
 
-In **Settings → Advanced → Custom prompt**, you can modify the translation prompt to get translation results that better suit your needs.
+Modify the translation prompt in **Settings → Advanced → Custom prompt**:
 
-For example, if you mainly translate academic papers, you can add:
 ```
-Translate the following academic text. Preserve technical terminology, citations, and formulas. Output only the translation.
+Translate the following academic text. Preserve technical terminology,
+citations, and formulas. Output only the translation.
 ```
 
-### Advanced Parameters (Ollama Local Model)
+---
 
-- **Top K**: Limit the number of candidate tokens (default 20)
-- **Top P**: Control the nucleus sampling range (default 0.6)
-- **Repeat Penalty**: Reduce the probability of repeated output (default 1.05)
-- **Num Predict**: Maximum number of tokens to generate per request (default 4096)
+## Other Translation Services
 
-> 💡 These parameters usually stay at default values. If you need to adjust them, refer to the Ollama official documentation.
+### Cloud API (OpenAI-Compatible)
 
-## Windows System Notes
+Supports any OpenAI-compatible API provider:
 
-This plugin is primarily developed and tested on macOS. Windows users should pay attention to the following:
+| Configuration | Description |
+|-------------|-------------|
+| API URL | Provider's endpoint |
+| API Key | Provider's authentication key |
+| Model name | Provider's model identifier |
+
+### Google Translate / Bing Translate
+
+No configuration required. Select directly from the translation service dropdown.
+
+> ⚠️ Free translation services have rate limits. For heavy usage, switch to local models or cloud APIs.
+
+---
+
+## Windows Notes
 
 ### Ollama Installation
 
-- Windows version of Ollama will automatically run in the background after installation
-- Default port is the same as macOS: `http://localhost:11434`
-- If you encounter connection issues, check if Windows Firewall is blocking local connections
+- Download the Windows installer from the [Ollama website](https://ollama.com/)
+- Runs automatically in the background after installation
+- Port is the same as macOS: `http://localhost:11434`
+- If connection fails, check Windows Firewall settings
 
-### Path Issues
+### URL Format
 
-- Windows paths use backslashes `\`, but URLs in plugin configuration should use forward slashes `/`
-- Example: `http://localhost:11434` (correct), do not write as `http://localhost:11434\`
+- Use forward slashes `/`: `http://localhost:11434` (correct)
+- Do not use backslashes: `http://localhost:11434\` (wrong)
 
-### Common Issues
+---
 
-1. **Test connection failed**
-   - Confirm Ollama is running (there should be an Ollama icon in the taskbar)
-   - Try accessing `http://localhost:11434` in your browser to confirm the service is normal
-   - Check if another program is using port 11434
+## FAQ
 
-2. **Translation popup not showing**
-   - Confirm "Auto-translate selected text" is enabled in settings
-   - Confirm "Enable reader selection popup" is enabled in settings
-   - Try restarting Obsidian
+### Connection test failed?
 
-3. **Markdown files cannot be translated**
-   - Confirm "Translation scope" is set to "Global" in settings
+1. Confirm Ollama is running (there should be an Ollama icon in the taskbar)
+2. Try accessing `http://localhost:11434` in your browser to verify
+3. Check if another program is using port 11434
+
+### Translation popup not showing?
+
+- Confirm "Auto-translate selected text" and "Enable reader selection popup" are enabled
+- Try restarting Obsidian
+
+### Markdown files won't translate?
+
+- Set "Translation scope" to "Global"
+
+---
 
 ## Development
 
@@ -211,6 +213,8 @@ After building, copy `main.js`, `manifest.json`, and `styles.css` to:
 YourVault/.obsidian/plugins/llm-translator/
 ```
 
+---
+
 ## License
 
-MIT License
+MIT License © 2026
