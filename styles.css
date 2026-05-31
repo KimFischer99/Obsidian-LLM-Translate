@@ -1,0 +1,361 @@
+.pdf-ollama-translator-popup {
+	position: fixed;
+	z-index: var(--layer-popover);
+	width: 360px;
+	height: 220px;
+	min-width: 280px;
+	min-height: 150px;
+	max-width: calc(100vw - 24px);
+	max-height: calc(100vh - 24px);
+	overflow: hidden;
+	resize: both;
+	border: 0;
+	border-radius: 8px;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	box-shadow: var(--shadow-l);
+	font-size: var(--pdf-ollama-translator-font-size, 13px);
+	line-height: var(--pdf-ollama-translator-line-height, 1.6);
+}
+
+.pdf-ollama-translator-popup__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 5px;
+	padding: 3px 4px 5px;
+	border-bottom: 0;
+	background: var(--background-secondary);
+}
+
+.pdf-ollama-translator-popup__language {
+	display: inline-flex;
+	align-items: center;
+	min-width: 0;
+	gap: 4px;
+}
+
+.pdf-ollama-translator-popup__language-select {
+	width: 58px;
+	height: 24px;
+	padding: 0 4px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	background: var(--background-primary);
+	color: var(--text-muted);
+	box-shadow: none;
+	font: inherit;
+	font-size: 11px;
+}
+
+.pdf-ollama-translator-popup__language-swap {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	background: var(--background-primary);
+	color: var(--text-muted);
+	box-shadow: none;
+	cursor: pointer;
+}
+
+.pdf-ollama-translator-popup__actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	flex: 0 0 auto;
+	gap: 5px;
+}
+
+.pdf-ollama-translator-popup__button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	background: var(--background-primary);
+	color: var(--text-muted);
+	cursor: pointer;
+	box-shadow: none;
+}
+
+.pdf-ollama-translator-popup__button:hover,
+.pdf-ollama-translator-popup__button:focus-visible,
+.pdf-ollama-translator-popup__language-swap:hover,
+.pdf-ollama-translator-popup__language-swap:focus-visible,
+.pdf-ollama-translator-popup__language-select:hover,
+.pdf-ollama-translator-popup__language-select:focus-visible {
+	background: var(--background-modifier-hover);
+	color: var(--text-normal);
+}
+
+.pdf-ollama-translator-popup__body {
+	overflow: auto;
+	height: calc(100% - 32px);
+	max-height: none;
+	margin: 4px 4px 4px;
+	padding: 10px;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+}
+
+.pdf-ollama-translator-popup__result {
+	text-align: justify;
+	text-justify: inter-ideograph;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.pdf-ollama-translator-popup__status {
+	color: var(--text-muted);
+}
+
+.pdf-ollama-translator-popup__error {
+	color: var(--text-error);
+}
+
+.pdf-ollama-translator-settings__section {
+	margin: 18px 0 8px;
+	padding-top: 4px;
+}
+
+.pdf-ollama-translator-settings__section h3 {
+	margin: 0 0 4px;
+	font-size: 1.05em;
+}
+
+.pdf-ollama-translator-settings__description {
+	margin: 0;
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+}
+
+.pdf-ollama-translator-settings__textarea {
+	width: min(680px, 100%);
+	min-height: 96px;
+	font-family: var(--font-monospace);
+	font-size: var(--font-ui-small);
+	line-height: 1.5;
+	resize: vertical;
+}
+
+.pdf-ollama-translator-sidebar {
+	display: flex;
+	height: 100%;
+	flex-direction: column;
+	gap: 10px;
+	padding: 12px;
+	overflow: hidden;
+}
+
+.pdf-ollama-translator-sidebar__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.pdf-ollama-translator-sidebar__title {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+	color: var(--text-normal);
+	font-size: 20px;
+	font-weight: 700;
+}
+
+.pdf-ollama-translator-sidebar__title-icon {
+	display: inline-flex;
+	width: 22px;
+	height: 22px;
+	color: var(--text-accent);
+}
+
+.pdf-ollama-translator-sidebar__service-row,
+.pdf-ollama-translator-sidebar__language-row {
+	display: grid;
+	align-items: center;
+	gap: 6px;
+}
+
+.pdf-ollama-translator-sidebar__service-row {
+	grid-template-columns: minmax(0, 1fr) 32px minmax(92px, 0.7fr);
+}
+
+.pdf-ollama-translator-sidebar__language-row {
+	grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.pdf-ollama-translator-sidebar__input,
+.pdf-ollama-translator-sidebar__select,
+.pdf-ollama-translator-sidebar__service-label,
+.pdf-ollama-translator-sidebar__primary-button,
+.pdf-ollama-translator-sidebar__copy-button,
+.pdf-ollama-translator-sidebar__icon-button {
+	height: 32px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	box-shadow: none;
+	font: inherit;
+}
+
+.pdf-ollama-translator-sidebar__input,
+.pdf-ollama-translator-sidebar__select,
+.pdf-ollama-translator-sidebar__service-label {
+	width: 100%;
+	min-width: 0;
+	padding: 0 8px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.pdf-ollama-translator-sidebar__select {
+	text-align: center;
+	text-align-last: center;
+}
+
+.pdf-ollama-translator-sidebar__service-label {
+	display: flex;
+	align-items: center;
+	color: var(--text-muted);
+}
+
+.pdf-ollama-translator-sidebar__primary-button,
+.pdf-ollama-translator-sidebar__copy-button,
+.pdf-ollama-translator-sidebar__icon-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+}
+
+.pdf-ollama-translator-sidebar__primary-button:hover,
+.pdf-ollama-translator-sidebar__copy-button:hover,
+.pdf-ollama-translator-sidebar__icon-button:hover {
+	background: var(--background-modifier-hover);
+}
+
+.pdf-ollama-translator-sidebar__icon-button {
+	width: 32px;
+	padding: 0;
+	color: var(--text-muted);
+}
+
+.pdf-ollama-translator-sidebar__arrow {
+	color: var(--text-muted);
+	font-size: 22px;
+	line-height: 1;
+}
+
+.pdf-ollama-translator-sidebar__panel {
+	overflow: auto;
+	min-height: 120px;
+	padding: 10px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	background: var(--background-secondary);
+	color: var(--text-normal);
+	font-size: var(--font-ui-medium);
+	line-height: 1.6;
+	text-align: left;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.pdf-ollama-translator-sidebar__panel--result {
+	flex: 1 1 auto;
+	min-height: 180px;
+	background: transparent;
+	text-align: justify;
+	text-justify: inter-ideograph;
+}
+
+.pdf-ollama-translator-sidebar__panel.is-placeholder {
+	color: var(--text-muted);
+	text-align: left;
+}
+
+.pdf-ollama-translator-sidebar__panel.is-error {
+	color: var(--text-error);
+}
+
+.pdf-ollama-translator-sidebar__controls {
+	flex: 0 0 auto;
+	padding-top: 8px;
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+.pdf-ollama-translator-sidebar__control-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 10px;
+	min-height: 40px;
+	padding: 4px 0;
+}
+
+.pdf-ollama-translator-sidebar__control-label {
+	min-width: 0;
+	overflow: hidden;
+	color: var(--text-muted);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.pdf-ollama-translator-sidebar__toggle {
+	width: 44px;
+	height: 24px;
+	margin: 0;
+	accent-color: var(--interactive-accent);
+}
+
+.pdf-ollama-translator-sidebar__clear-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 72px;
+	height: 32px;
+	padding: 0 12px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	box-shadow: none;
+	cursor: pointer;
+	font: inherit;
+}
+
+.pdf-ollama-translator-sidebar__clear-button:hover {
+	background: var(--background-modifier-hover);
+}
+
+.pdf-ollama-translator-sidebar__copy-row {
+	display: grid;
+	grid-template-columns: auto repeat(3, minmax(0, 1fr));
+	align-items: center;
+	gap: 6px;
+	margin-top: 8px;
+}
+
+.pdf-ollama-translator-sidebar__copy-label {
+	display: inline-flex;
+	align-items: center;
+	height: 32px;
+	color: var(--text-muted);
+}
+
+.pdf-ollama-translator-sidebar__copy-button {
+	text-align: center;
+}
