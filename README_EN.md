@@ -2,7 +2,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/platform-Obsidian%20Desktop-purple" alt="Platform">
-  <img src="https://img.shields.io/github/v/release/KimFischer99/Obsidian-LLM-Translate" alt="Version">
+  <img src="https://img.shields.io/github/v/release/KimFischer99/Obsidian-LLM-Translator" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/language-Chinese%20%7C%20English-green" alt="Languages">
 </p>
@@ -78,11 +78,11 @@ Download and install via Terminal:
 mkdir -p YourVault/.obsidian/plugins/llm-translator
 
 # Download Release files
-curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translate/releases/download/v0.2.3/main.js \
+curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translator/releases/download/0.2.3/main.js \
   -o YourVault/.obsidian/plugins/llm-translator/main.js
-curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translate/releases/download/v0.2.3/manifest.json \
+curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translator/releases/download/0.2.3/manifest.json \
   -o YourVault/.obsidian/plugins/llm-translator/manifest.json
-curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translate/releases/download/v0.2.3/styles.css \
+curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translator/releases/download/0.2.3/styles.css \
   -o YourVault/.obsidian/plugins/llm-translator/styles.css
 ```
 
