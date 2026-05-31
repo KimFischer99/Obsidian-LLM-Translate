@@ -17,11 +17,11 @@ import type {
 const DEFAULT_SETTINGS: PdfOllamaTranslatorSettings = {
 	translationScope: "pdf-only",
 	translationProvider: "local-llm",
-	ollamaBaseUrl: "http://127.0.0.1:11434",
+	ollamaBaseUrl: "",
 	model: "",
-	cloudApiBaseUrl: "https://api.deepseek.com",
+	cloudApiBaseUrl: "",
 	cloudApiKey: "",
-	cloudApiModel: "deepseek-chat",
+	cloudApiModel: "",
 	autoTranslateSelection: true,
 	enablePopup: true,
 	restrictSourceLanguages: true,
@@ -94,12 +94,12 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 
 		this.addSettingTab(new PdfOllamaTranslatorSettingTab(this.app, this));
 		this.registerSidebarView();
-		this.addRibbonIcon("languages", "LLM Translate", () => {
+		this.addRibbonIcon("languages", "LLM Translator", () => {
 			void this.activateSidebarView();
 		});
 		this.addCommand({
 			id: "open-pdf-ollama-translator-sidebar",
-			name: "Open LLM Translate sidebar",
+			name: "Open LLM Translator sidebar",
 			callback: () => void this.activateSidebarView(),
 		});
 		this.registerSelectionEvents();
@@ -513,6 +513,6 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 		if (!this.settings.debugLogging) {
 			return;
 		}
-		console.debug("[LLM Translate]", message, detail ?? "");
+		console.debug("[LLM Translator]", message, detail ?? "");
 	};
 }

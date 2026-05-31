@@ -346,7 +346,7 @@ export class TranslatorService {
 	}
 
 	private getCloudChatUrl(baseUrl: string): string {
-		const trimmed = baseUrl.trim().replace(/\/+$/, "") || "https://api.deepseek.com";
+		const trimmed = baseUrl.trim().replace(/\/+$/, "");
 		return `${trimmed}/chat/completions`;
 	}
 
@@ -374,7 +374,7 @@ export class TranslatorService {
 	private getApiBaseUrl(baseUrl: string): string {
 		const trimmed = baseUrl.trim().replace(/\/+$/, "");
 		if (!trimmed) {
-			return "http://127.0.0.1:11434/api";
+			return "http://localhost:11434/api";
 		}
 		return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
 	}

@@ -31,7 +31,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 		containerEl.empty();
 		containerEl.addClass("pdf-ollama-translator-settings");
 
-		containerEl.createEl("h2", { text: "LLM Translate" });
+		containerEl.createEl("h2", { text: "LLM Translator" });
 
 		this.addSection(t("settings.section.general"));
 		new Setting(containerEl)
@@ -260,7 +260,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			.setName(t("settings.localEndpoint"))
 			.addText((text) =>
 				text
-					.setPlaceholder("http://127.0.0.1:11434")
+					.setPlaceholder("http://localhost:11434")
 					.setValue(this.plugin.settings.ollamaBaseUrl)
 					.onChange(async (value) => {
 						await this.plugin.updateSettings({ ollamaBaseUrl: value.trim() });
@@ -301,7 +301,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			.setName(t("settings.apiUrl"))
 			.addText((text) =>
 				text
-					.setPlaceholder("https://api.deepseek.com")
+					.setPlaceholder("https://api.example.com")
 					.setValue(this.plugin.settings.cloudApiBaseUrl)
 					.onChange(async (value) => {
 						await this.plugin.updateSettings({ cloudApiBaseUrl: value.trim() });
@@ -324,7 +324,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			.setName(t("settings.modelName"))
 			.addText((text) =>
 				text
-					.setPlaceholder("deepseek-chat")
+					.setPlaceholder("model-name")
 					.setValue(this.plugin.settings.cloudApiModel)
 					.onChange(async (value) => {
 						await this.plugin.updateSettings({ cloudApiModel: value.trim() });

@@ -1,5 +1,5 @@
 {
-	"name": "llm-translate",
+	"name": "llm-translator",
 	"version": "0.2.2",
 	"description": "Translate selected PDF text in Obsidian with local and cloud translation services.",
 	"main": "main.js",

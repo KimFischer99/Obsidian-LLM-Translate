@@ -3,7 +3,7 @@ import type PdfOllamaTranslatorPlugin from "./main";
 import type { TranslationLanguage, TranslationProviderId } from "./types";
 import { t } from "./i18n";
 
-export const PDF_OLLAMA_TRANSLATOR_VIEW_TYPE = "pdf-ollama-translator-sidebar";
+export const PDF_OLLAMA_TRANSLATOR_VIEW_TYPE = "llm-translator-sidebar";
 
 export class PdfOllamaTranslatorSidebarView extends ItemView {
 	constructor(leaf: WorkspaceLeaf, private plugin: PdfOllamaTranslatorPlugin) {
@@ -15,7 +15,7 @@ export class PdfOllamaTranslatorSidebarView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return "LLM Translate";
+		return "LLM Translator";
 	}
 
 	getIcon(): string {
@@ -39,7 +39,7 @@ export class PdfOllamaTranslatorSidebarView extends ItemView {
 		const titleEl = headerEl.createDiv({ cls: "pdf-ollama-translator-sidebar__title" });
 		const iconEl = titleEl.createSpan({ cls: "pdf-ollama-translator-sidebar__title-icon" });
 		setIcon(iconEl, "languages");
-		titleEl.createSpan({ text: t("sidebar.title") });
+		titleEl.createSpan({ text: "LLM Translator" });
 
 		const openSettingsButton = headerEl.createEl("button", {
 			cls: "pdf-ollama-translator-sidebar__icon-button",
