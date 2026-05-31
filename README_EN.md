@@ -65,14 +65,35 @@ ollama pull RogerBen/HY-MT2-1.8B:latest
 3. Click the plugin settings icon to open the settings page
 4. Fill in the following recommended settings:
 
+**General Settings**
+
 | Setting | Recommended Value |
 |---------|-------------------|
 | Translation scope | Global |
+| Auto-translate selected text | Enabled |
+| Enable reader selection popup | Enabled |
+
+**Service Settings**
+
+| Setting | Recommended Value |
+|---------|-------------------|
 | Translation service | Local LLM |
 | Local model endpoint | `http://localhost:11434` |
-| Model name | `RogerBen/HY-MT2-1.8B:latest` |
+| Model name | `hy-mt2-1.8b-q4:latest` |
 | Source language | Auto |
 | Target language | 简体中文 |
+
+**Advanced Settings**
+
+| Setting | Recommended Value |
+|---------|-------------------|
+| Max selection length | 5000 |
+| Selection trigger delay | 350 |
+| Request timeout | 30000 |
+| Top K | 20 |
+| Top P | 0.6 |
+| Repeat Penalty | 1.05 |
+| Num Predict | 4096 |
 
 5. Click **Test** button to verify connection
 

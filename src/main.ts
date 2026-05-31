@@ -15,10 +15,10 @@ import type {
 } from "./types";
 
 const DEFAULT_SETTINGS: PdfOllamaTranslatorSettings = {
-	translationScope: "pdf-only",
+	translationScope: "global",
 	translationProvider: "local-llm",
-	ollamaBaseUrl: "",
-	model: "",
+	ollamaBaseUrl: "http://localhost:11434",
+	model: "hy-mt2-1.8b-q4:latest",
 	cloudApiBaseUrl: "",
 	cloudApiKey: "",
 	cloudApiModel: "",
@@ -29,7 +29,7 @@ const DEFAULT_SETTINGS: PdfOllamaTranslatorSettings = {
 	targetLanguage: "zh-Hans",
 	debounceMs: 350,
 	requestTimeoutMs: 30000,
-	maxSelectionChars: 2500,
+	maxSelectionChars: 5000,
 	fontSize: 13,
 	lineHeight: 1.6,
 	rememberPopupSize: true,
