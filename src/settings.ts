@@ -1,7 +1,7 @@
 import { App, DropdownComponent, Notice, PluginSettingTab, Setting } from "obsidian";
 import type PdfOllamaTranslatorPlugin from "./main";
-import { DEFAULT_TRANSLATION_PROMPT } from "./ollamaTranslator";
-import type { TranslationLanguage } from "./types";
+import { DEFAULT_TRANSLATION_PROMPT } from "./translatorService";
+import type { TranslationLanguage, TranslationProviderId } from "./types";
 
 const SOURCE_LANGUAGE_OPTIONS: Array<{ value: TranslationLanguage; label: string }> = [
 	{ value: "auto", label: "Auto" },
@@ -59,47 +59,22 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 			.addDropdown((dropdown) =>
 				dropdown
 					.addOption("local-llm", "Local LLM")
-					.setValue("local-llm"),
-			);
-
-		new Setting(containerEl)
-			.setName("本地模型端口")
-			.addText((text) =>
-				text
-					.setPlaceholder("http://127.0.0.1:11434")
-					.setValue(this.plugin.settings.ollamaBaseUrl)
+					.addOption("cloud-api", "Cloud API")
+					.addOption("google", "Google")
+					.addOption("bing", "Bing")
+					.setValue(this.plugin.settings.translationProvider)
 					.onChange(async (value) => {
-						await this.plugin.updateSettings({ ollamaBaseUrl: value.trim() });
+						await this.plugin.updateSettings({ translationProvider: value as TranslationProviderId });
+						this.display();
 					}),
 			);
 
-		let modelDropdown: DropdownComponent | undefined;
-		new Setting(containerEl)
-			.setName("模型名称")
-			.addDropdown((dropdown) => {
-				modelDropdown = dropdown;
-				dropdown.addOption("", "选择模型");
-				if (this.plugin.settings.model) {
-					dropdown.addOption(this.plugin.settings.model, this.plugin.settings.model);
-				}
-				return dropdown
-					.setValue(this.plugin.settings.model)
-					.onChange(async (value) => {
-						await this.plugin.updateSettings({ model: value });
-					});
-			})
-			.addButton((button) =>
-				button
-					.setButtonText("测试")
-					.onClick(async () => {
-						button.setDisabled(true).setButtonText("测试中...");
-						const result = await this.plugin.testConnection();
-						button.setDisabled(false).setButtonText("测试");
-						new Notice(result.message);
-					}),
-			);
-		if (modelDropdown) {
-			void this.populateModelDropdown(modelDropdown);
+		if (this.plugin.settings.translationProvider === "local-llm") {
+			this.renderLocalServiceSettings(containerEl);
+		} else if (this.plugin.settings.translationProvider === "cloud-api") {
+			this.renderCloudServiceSettings(containerEl);
+		} else {
+			this.renderDirectServiceSettings(containerEl);
 		}
 
 		new Setting(containerEl)
@@ -240,6 +215,118 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 					});
 			});
 
+		if (this.plugin.settings.translationProvider === "local-llm") {
+			this.renderLocalAdvancedSettings(containerEl);
+		}
+
+		new Setting(containerEl)
+			.setName("清理译文中的空行、thinking 和多余文本")
+			.setDesc("自动移除引号、代码块、翻译标签和 thinking 残留。")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.cleanModelOutput)
+					.onChange(async (value) => {
+						await this.plugin.updateSettings({ cleanModelOutput: value });
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName("调试日志")
+			.setDesc("在开发者控制台输出请求状态和错误摘要。")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.debugLogging)
+					.onChange(async (value) => {
+						await this.plugin.updateSettings({ debugLogging: value });
+					}),
+			);
+	}
+
+	private renderLocalServiceSettings(containerEl: HTMLElement): void {
+		new Setting(containerEl)
+			.setName("本地模型端口")
+			.addText((text) =>
+				text
+					.setPlaceholder("http://127.0.0.1:11434")
+					.setValue(this.plugin.settings.ollamaBaseUrl)
+					.onChange(async (value) => {
+						await this.plugin.updateSettings({ ollamaBaseUrl: value.trim() });
+					}),
+			);
+
+		let modelDropdown: DropdownComponent | undefined;
+		new Setting(containerEl)
+			.setName("模型名称")
+			.addDropdown((dropdown) => {
+				modelDropdown = dropdown;
+				dropdown.addOption("", "选择模型");
+				if (this.plugin.settings.model) {
+					dropdown.addOption(this.plugin.settings.model, this.plugin.settings.model);
+				}
+				return dropdown
+					.setValue(this.plugin.settings.model)
+					.onChange(async (value) => {
+						await this.plugin.updateSettings({ model: value });
+					});
+			})
+			.addButton((button) => this.bindTestButton(button));
+		if (modelDropdown) {
+			void this.populateModelDropdown(modelDropdown);
+		}
+	}
+
+	private renderCloudServiceSettings(containerEl: HTMLElement): void {
+		new Setting(containerEl)
+			.setName("API 类型")
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOption("openai-compatible", "OpenAI Compatible")
+					.setValue("openai-compatible"),
+			);
+
+		new Setting(containerEl)
+			.setName("API 地址")
+			.addText((text) =>
+				text
+					.setPlaceholder("https://api.deepseek.com")
+					.setValue(this.plugin.settings.cloudApiBaseUrl)
+					.onChange(async (value) => {
+						await this.plugin.updateSettings({ cloudApiBaseUrl: value.trim() });
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName("API Key")
+			.addText((text) => {
+				text.inputEl.type = "password";
+				text
+					.setPlaceholder("sk-...")
+					.setValue(this.plugin.settings.cloudApiKey)
+					.onChange(async (value) => {
+						await this.plugin.updateSettings({ cloudApiKey: value.trim() });
+					});
+			});
+
+		new Setting(containerEl)
+			.setName("模型名称")
+			.addText((text) =>
+				text
+					.setPlaceholder("deepseek-chat")
+					.setValue(this.plugin.settings.cloudApiModel)
+					.onChange(async (value) => {
+						await this.plugin.updateSettings({ cloudApiModel: value.trim() });
+					}),
+			)
+			.addButton((button) => this.bindTestButton(button));
+	}
+
+	private renderDirectServiceSettings(containerEl: HTMLElement): void {
+		new Setting(containerEl)
+			.setName("连接测试")
+			.addButton((button) => this.bindTestButton(button));
+	}
+
+	private renderLocalAdvancedSettings(containerEl: HTMLElement): void {
 		new Setting(containerEl)
 			.setName("Top K")
 			.setDesc("限制候选 token 数量。")
@@ -294,28 +381,17 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 						await this.plugin.updateNumberSetting("numPredict", value, 1, 32768);
 					});
 			});
+	}
 
-		new Setting(containerEl)
-			.setName("清理译文中的空行、thinking 和多余文本")
-			.setDesc("自动移除引号、代码块、翻译标签和 thinking 残留。")
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.cleanModelOutput)
-					.onChange(async (value) => {
-						await this.plugin.updateSettings({ cleanModelOutput: value });
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName("调试日志")
-			.setDesc("在开发者控制台输出请求状态和错误摘要。")
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.debugLogging)
-					.onChange(async (value) => {
-						await this.plugin.updateSettings({ debugLogging: value });
-					}),
-			);
+	private bindTestButton(button: import("obsidian").ButtonComponent): import("obsidian").ButtonComponent {
+		return button
+			.setButtonText("测试")
+			.onClick(async () => {
+				button.setDisabled(true).setButtonText("测试中...");
+				const result = await this.plugin.testConnection();
+				button.setDisabled(false).setButtonText("测试");
+				new Notice(result.message);
+			});
 	}
 
 	private async populateModelDropdown(dropdown: DropdownComponent): Promise<void> {

@@ -1,6 +1,10 @@
 export interface PdfOllamaTranslatorSettings {
+	translationProvider: TranslationProviderId;
 	ollamaBaseUrl: string;
 	model: string;
+	cloudApiBaseUrl: string;
+	cloudApiKey: string;
+	cloudApiModel: string;
 	autoTranslateSelection: boolean;
 	enablePopup: boolean;
 	restrictSourceLanguages: boolean;
@@ -25,6 +29,8 @@ export interface PdfOllamaTranslatorSettings {
 	cleanModelOutput: boolean;
 	debugLogging: boolean;
 }
+
+export type TranslationProviderId = "local-llm" | "cloud-api" | "google" | "bing";
 
 export type TranslationLanguage = "auto" | "en" | "de" | "fr" | "ja" | "zh-Hans";
 

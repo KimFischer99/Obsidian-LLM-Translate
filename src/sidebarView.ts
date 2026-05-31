@@ -1,6 +1,6 @@
 import { ItemView, Notice, WorkspaceLeaf, setIcon } from "obsidian";
 import type PdfOllamaTranslatorPlugin from "./main";
-import type { TranslationLanguage } from "./types";
+import type { TranslationLanguage, TranslationProviderId } from "./types";
 
 export const PDF_OLLAMA_TRANSLATOR_VIEW_TYPE = "pdf-ollama-translator-sidebar";
 
@@ -55,11 +55,22 @@ export class PdfOllamaTranslatorSidebarView extends ItemView {
 
 	private renderServiceControls(container: HTMLElement): void {
 		const rowEl = container.createDiv({ cls: "pdf-ollama-translator-sidebar__service-row" });
-		rowEl.createDiv({
-			text: "Local LLM",
-			cls: "pdf-ollama-translator-sidebar__service-label",
-			attr: { title: this.plugin.settings.model || "模型请在详细设置中配置" },
+		const providerEl = rowEl.createEl("select", {
+			cls: "pdf-ollama-translator-sidebar__select",
+			attr: { title: this.plugin.getActiveProviderLabel(), "aria-label": "翻译服务" },
 		});
+		for (const option of [
+			{ value: "local-llm", label: "Local LLM" },
+			{ value: "cloud-api", label: "Cloud API" },
+			{ value: "google", label: "Google" },
+			{ value: "bing", label: "Bing" },
+		]) {
+			providerEl.createEl("option", { text: option.label, value: option.value });
+		}
+		providerEl.value = this.plugin.settings.translationProvider;
+		providerEl.onchange = () => {
+			void this.plugin.updateSettings({ translationProvider: providerEl.value as TranslationProviderId });
+		};
 
 		const testButton = rowEl.createEl("button", {
 			cls: "pdf-ollama-translator-sidebar__icon-button",

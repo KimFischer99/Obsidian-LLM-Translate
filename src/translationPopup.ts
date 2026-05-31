@@ -70,7 +70,7 @@ export class TranslationPopup {
 		this.rootEl.style.setProperty("--pdf-ollama-translator-font-size", `${options.fontSize}px`);
 		this.rootEl.style.setProperty("--pdf-ollama-translator-line-height", String(options.lineHeight));
 		this.rootEl.style.width = `${options.width}px`;
-		this.rootEl.style.height = `${options.height}px`;
+		this.rootEl.style.height = `${this.getPreferredHeight(options.height)}px`;
 		this.renderLanguageControls();
 		this.renderActions();
 		if (this.lastRect) {
@@ -88,6 +88,7 @@ export class TranslationPopup {
 		this.lastResult = result.translatedText;
 		this.render("success", result.translatedText);
 		this.showAt(rect);
+		this.fitToContent();
 	}
 
 	showError(sourceText: string, message: string, rect: DOMRect): void {
@@ -228,6 +229,40 @@ export class TranslationPopup {
 
 		this.rootEl.style.left = `${left}px`;
 		this.rootEl.style.top = `${top}px`;
+	}
+
+	private fitToContent(): void {
+		const margin = 12;
+		const maxHeight = window.innerHeight - margin * 2;
+		const headerHeight = this.languageEl.parentElement?.getBoundingClientRect().height ?? 32;
+		const bodyEl = this.resultEl.parentElement;
+		if (!bodyEl) {
+			return;
+		}
+
+		const bodyStyle = getComputedStyle(bodyEl);
+		const verticalBodySpace =
+			Number.parseFloat(bodyStyle.paddingTop) +
+			Number.parseFloat(bodyStyle.paddingBottom) +
+			Number.parseFloat(bodyStyle.marginTop) +
+			Number.parseFloat(bodyStyle.marginBottom);
+		const contentHeight = this.resultEl.scrollHeight + headerHeight + verticalBodySpace + 2;
+		const nextHeight = clamp(
+			Math.ceil(contentHeight),
+			Number.parseFloat(getComputedStyle(this.rootEl).minHeight) || 150,
+			maxHeight,
+		);
+
+		this.rootEl.style.height = `${nextHeight}px`;
+		if (this.lastRect) {
+			this.positionNear(this.lastRect);
+		}
+	}
+
+	private getPreferredHeight(savedHeight: number): number {
+		const minHeight = Number.parseFloat(getComputedStyle(this.rootEl).minHeight) || 150;
+		const maxHeight = window.innerHeight - 24;
+		return clamp(savedHeight, minHeight, Math.max(minHeight, maxHeight));
 	}
 
 	private handleResize(): void {

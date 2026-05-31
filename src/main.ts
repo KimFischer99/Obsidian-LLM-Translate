@@ -1,6 +1,6 @@
 import { Notice, Plugin, WorkspaceLeaf } from "obsidian";
-import { OllamaTranslator } from "./ollamaTranslator";
-import { DEFAULT_TRANSLATION_PROMPT } from "./ollamaTranslator";
+import { getProviderLabel, TranslatorService } from "./translatorService";
+import { DEFAULT_TRANSLATION_PROMPT } from "./translatorService";
 import { PdfSelectionReader } from "./pdfSelection";
 import { PdfOllamaTranslatorSettingTab } from "./settings";
 import { PDF_OLLAMA_TRANSLATOR_VIEW_TYPE, PdfOllamaTranslatorSidebarView } from "./sidebarView";
@@ -14,8 +14,12 @@ import type {
 } from "./types";
 
 const DEFAULT_SETTINGS: PdfOllamaTranslatorSettings = {
+	translationProvider: "local-llm",
 	ollamaBaseUrl: "http://127.0.0.1:11434",
 	model: "",
+	cloudApiBaseUrl: "https://api.deepseek.com",
+	cloudApiKey: "",
+	cloudApiModel: "deepseek-chat",
 	autoTranslateSelection: true,
 	enablePopup: true,
 	restrictSourceLanguages: true,
@@ -50,7 +54,7 @@ interface AppWithSetting {
 
 export default class PdfOllamaTranslatorPlugin extends Plugin {
 	settings: PdfOllamaTranslatorSettings;
-	private translator: OllamaTranslator;
+	private translator: TranslatorService;
 	private selectionReader: PdfSelectionReader;
 	private popup: TranslationPopup;
 	private selectionTimer: number | undefined;
@@ -68,7 +72,7 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 	async onload(): Promise<void> {
 		await this.loadSettings();
 
-		this.translator = new OllamaTranslator(() => this.settings);
+		this.translator = new TranslatorService(() => this.settings);
 		this.selectionReader = new PdfSelectionReader(this.app, () => this.settings, this.debug);
 		this.popup = new TranslationPopup({
 			showCopyButton: this.settings.showCopyButton,
@@ -153,6 +157,10 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 
 	async listModels(): Promise<string[]> {
 		return this.translator.listModels();
+	}
+
+	getActiveProviderLabel(): string {
+		return getProviderLabel(this.settings.translationProvider);
 	}
 
 	getSidebarState(): SidebarTranslationState {
@@ -303,16 +311,17 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 	}
 
 	private async translateSelection(selection: PdfTextSelection, force: boolean): Promise<void> {
-		if (!this.settings.model.trim()) {
+		const missingConfigMessage = this.getMissingProviderConfigMessage();
+		if (missingConfigMessage) {
 			if (this.isSidebarVisible()) {
 				this.updateSidebarState({
 					sourceText: selection.text,
 					translatedText: "",
 					status: "error",
-					message: "请先在插件设置中填写 Ollama 模型名称。",
+					message: missingConfigMessage,
 				});
 			} else {
-				this.popup.showError(selection.text, "请先在插件设置中填写 Ollama 模型名称。", selection.rect);
+				this.popup.showError(selection.text, missingConfigMessage, selection.rect);
 			}
 			return;
 		}
@@ -343,7 +352,8 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 		});
 		this.debug("Translating PDF selection.", {
 			length: selection.text.length,
-			model: this.settings.model,
+			provider: this.settings.translationProvider,
+			model: this.getActiveModelName(),
 		});
 
 		try {
@@ -390,6 +400,31 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 
 	private showTranslationResult(result: TranslationResult, rect: DOMRect): void {
 		this.popup.showResult(result, rect);
+	}
+
+	private getMissingProviderConfigMessage(): string {
+		if (this.settings.translationProvider === "local-llm" && !this.settings.model.trim()) {
+			return "请先在插件设置中选择本地模型。";
+		}
+		if (this.settings.translationProvider === "cloud-api") {
+			if (!this.settings.cloudApiKey.trim()) {
+				return "请先在插件设置中填写 Cloud API Key。";
+			}
+			if (!this.settings.cloudApiModel.trim()) {
+				return "请先在插件设置中填写 Cloud API 模型名称。";
+			}
+		}
+		return "";
+	}
+
+	private getActiveModelName(): string {
+		if (this.settings.translationProvider === "cloud-api") {
+			return this.settings.cloudApiModel;
+		}
+		if (this.settings.translationProvider === "local-llm") {
+			return this.settings.model;
+		}
+		return getProviderLabel(this.settings.translationProvider);
 	}
 
 	private hidePopup(): void {
@@ -458,7 +493,14 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 	}
 
 	private async loadSettings(): Promise<void> {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		const loaded = await this.loadData() as Partial<PdfOllamaTranslatorSettings> & { translationProvider?: string };
+		const loadedProvider = (loaded as { translationProvider?: string }).translationProvider;
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded, {
+			cloudApiBaseUrl: loaded.cloudApiBaseUrl ?? DEFAULT_SETTINGS.cloudApiBaseUrl,
+			cloudApiKey: loaded.cloudApiKey ?? DEFAULT_SETTINGS.cloudApiKey,
+			cloudApiModel: loaded.cloudApiModel ?? DEFAULT_SETTINGS.cloudApiModel,
+			translationProvider: loadedProvider ?? DEFAULT_SETTINGS.translationProvider,
+		});
 	}
 
 	private async saveSettings(): Promise<void> {

@@ -1,7 +1,7 @@
 {
 	"name": "llm-translate",
-	"version": "0.1.0",
-	"description": "Translate selected PDF text in Obsidian with a local Ollama model.",
+	"version": "0.2.0",
+	"description": "Translate selected PDF text in Obsidian with local and cloud translation services.",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {
