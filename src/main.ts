@@ -231,7 +231,7 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 			return;
 		}
 
-		const leaf = this.app.workspace.getLeftLeaf(false);
+		const leaf = this.app.workspace.getRightLeaf(false);
 		if (!leaf) {
 			new Notice(t("notice.cannotOpenSidebar"));
 			return;
@@ -495,13 +495,13 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 	}
 
 	private async loadSettings(): Promise<void> {
-		const loaded = await this.loadData() as Partial<PdfOllamaTranslatorSettings> & { translationProvider?: string };
-		const loadedProvider = (loaded as { translationProvider?: string }).translationProvider;
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded, {
-			cloudApiBaseUrl: loaded.cloudApiBaseUrl ?? DEFAULT_SETTINGS.cloudApiBaseUrl,
-			cloudApiKey: loaded.cloudApiKey ?? DEFAULT_SETTINGS.cloudApiKey,
-			cloudApiModel: loaded.cloudApiModel ?? DEFAULT_SETTINGS.cloudApiModel,
-			translationProvider: loadedProvider ?? DEFAULT_SETTINGS.translationProvider,
+		const loaded = (await this.loadData()) ?? {};
+		const safe = loaded as Partial<PdfOllamaTranslatorSettings> & { translationProvider?: string };
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, safe, {
+			cloudApiBaseUrl: safe.cloudApiBaseUrl ?? DEFAULT_SETTINGS.cloudApiBaseUrl,
+			cloudApiKey: safe.cloudApiKey ?? DEFAULT_SETTINGS.cloudApiKey,
+			cloudApiModel: safe.cloudApiModel ?? DEFAULT_SETTINGS.cloudApiModel,
+			translationProvider: safe.translationProvider ?? DEFAULT_SETTINGS.translationProvider,
 		});
 	}
 
