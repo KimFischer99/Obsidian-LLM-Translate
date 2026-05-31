@@ -69,6 +69,25 @@ ollama pull RogerBen/HY-MT2-1.8B:latest
 
 > 💡 **Windows 用户**：请从 [Ollama 官网](https://ollama.com/) 下载安装包，安装后 Ollama 自动在后台运行。
 
+### 安装插件
+
+通过 Terminal 下载并安装：
+
+```bash
+# 创建插件目录
+mkdir -p YourVault/.obsidian/plugins/llm-translator
+
+# 下载 Release 文件
+curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translate/releases/download/v0.2.3/main.js \
+  -o YourVault/.obsidian/plugins/llm-translator/main.js
+curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translate/releases/download/v0.2.3/manifest.json \
+  -o YourVault/.obsidian/plugins/llm-translator/manifest.json
+curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translate/releases/download/v0.2.3/styles.css \
+  -o YourVault/.obsidian/plugins/llm-translator/styles.css
+```
+
+将 `YourVault` 替换为你的 Obsidian 仓库路径。安装后重启 Obsidian，在 **设置 → 社区插件** 中启用 LLM Translator。
+
 ---
 
 ## 推荐配置
