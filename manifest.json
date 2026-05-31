@@ -3,8 +3,8 @@
 	"name": "LLM Translator",
 	"version": "0.2.3",
 	"minAppVersion": "0.15.0",
-	"description": "Translate selected text in Obsidian's native PDF reader with local and cloud translation services.",
-	"author": "Your Name",
+	"description": "Translate selected text in the native PDF reader with local and cloud translation services.",
+	"author": "Kim Fischer",
 	"authorUrl": "",
 	"isDesktopOnly": true
 }
