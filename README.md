@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="assets/screenshot.png" alt="LLM Translator Screenshot" width="720" style="border-radius: 8px;">
-</p>
-
 <h1 align="center">LLM Translator</h1>
 
 <p align="center">
@@ -23,6 +19,10 @@
 </p>
 
 <p align="center">一款基于本地大模型驱动的 Obsidian 划词翻译插件，支持 PDF 和 Markdown 文件的实时翻译。</p>
+
+<p align="center">
+  <img src="assets/screenshot.png" alt="LLM Translator Screenshot" width="720" style="border-radius: 8px;">
+</p>
 
 ---
 

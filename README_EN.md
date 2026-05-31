@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="assets/screenshot.png" alt="LLM Translator Screenshot" width="720" style="border-radius: 8px;">
-</p>
-
 <h1 align="center">LLM Translator</h1>
 
 <p align="center">
@@ -23,6 +19,10 @@
 </p>
 
 <p align="center">A local LLM-powered translation plugin for Obsidian, supporting real-time text selection translation in PDF and Markdown files.</p>
+
+<p align="center">
+  <img src="assets/screenshot.png" alt="LLM Translator Screenshot" width="720" style="border-radius: 8px;">
+</p>
 
 ---
 
