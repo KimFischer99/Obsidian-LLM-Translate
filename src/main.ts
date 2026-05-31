@@ -15,6 +15,7 @@ import type {
 } from "./types";
 
 const DEFAULT_SETTINGS: PdfOllamaTranslatorSettings = {
+	translationScope: "pdf-only",
 	translationProvider: "local-llm",
 	ollamaBaseUrl: "http://127.0.0.1:11434",
 	model: "",

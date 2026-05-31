@@ -6,6 +6,9 @@
       "interface": "界面",
       "advanced": "高级"
     },
+    "translationScope": "翻译范围",
+    "global": "全局",
+    "pdfOnly": "仅 PDF",
     "autoTranslateSelection": "自动翻译选中文本",
     "enablePopup": "启用阅读器划词弹窗",
     "translationService": "翻译服务",
@@ -73,10 +76,10 @@
   "notice": {
     "nothingToCopy": "没有可复制的内容。",
     "copied": "已复制。",
-    "selectTextFirst": "请先在当前 PDF 中选中文本。",
+    "selectTextFirst": "请先在当前文档中选中文本。",
     "cannotOpenSettings": "无法打开 Obsidian 设置页。",
     "cannotOpenSidebar": "无法打开翻译侧边栏。",
-    "noSelectionToRetry": "没有可重新翻译的 PDF 选区。",
+    "noSelectionToRetry": "没有可重新翻译的选区。",
     "selectionExceedsLimit": "选中文本超过 ${count} 个字符。"
   },
   "error": {

@@ -1,4 +1,5 @@
 export interface PdfOllamaTranslatorSettings {
+	translationScope: "global" | "pdf-only";
 	translationProvider: TranslationProviderId;
 	ollamaBaseUrl: string;
 	model: string;

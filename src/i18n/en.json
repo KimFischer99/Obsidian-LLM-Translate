@@ -6,6 +6,9 @@
       "interface": "Interface",
       "advanced": "Advanced"
     },
+    "translationScope": "Translation scope",
+    "global": "Global",
+    "pdfOnly": "PDF only",
     "autoTranslateSelection": "Auto-translate selected text",
     "enablePopup": "Enable reader selection popup",
     "translationService": "Translation service",
@@ -73,10 +76,10 @@
   "notice": {
     "nothingToCopy": "Nothing to copy.",
     "copied": "Copied.",
-    "selectTextFirst": "Please select text in the current PDF first.",
+    "selectTextFirst": "Please select text in the current document first.",
     "cannotOpenSettings": "Cannot open Obsidian settings.",
     "cannotOpenSidebar": "Cannot open translation sidebar.",
-    "noSelectionToRetry": "No PDF selection to retry.",
+    "noSelectionToRetry": "No selection to retry.",
     "selectionExceedsLimit": "Selection exceeds ${count} characters."
   },
   "error": {

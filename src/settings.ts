@@ -35,6 +35,18 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 
 		this.addSection(t("settings.section.general"));
 		new Setting(containerEl)
+			.setName(t("settings.translationScope"))
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOption("global", t("settings.global"))
+					.addOption("pdf-only", t("settings.pdfOnly"))
+					.setValue(this.plugin.settings.translationScope)
+					.onChange(async (value) => {
+						await this.plugin.updateSettings({ translationScope: value as "global" | "pdf-only" });
+					}),
+			);
+
+		new Setting(containerEl)
 			.setName(t("settings.autoTranslateSelection"))
 			.addToggle((toggle) =>
 				toggle

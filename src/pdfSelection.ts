@@ -7,6 +7,16 @@ interface PdfLikeView {
 	getViewType(): string;
 }
 
+interface MarkdownLikeView {
+	containerEl: HTMLElement;
+	file?: TFile | null;
+	getViewType(): string;
+	editor?: {
+		getSelection(): string;
+		somethingSelected(): boolean;
+	};
+}
+
 interface SelectionWithContext {
 	selection: Selection;
 	rectOffset?: DOMRect;
@@ -30,7 +40,10 @@ export class PdfSelectionReader {
 	) {}
 
 	readSelection(): PdfTextSelection | null {
-		const container = this.getActivePdfContainer();
+		const settings = this.getSettings();
+		const container = settings.translationScope === "global"
+			? this.getActiveContainer()
+			: this.getActivePdfContainer();
 		if (!container) {
 			return null;
 		}
@@ -50,7 +63,6 @@ export class PdfSelectionReader {
 			return null;
 		}
 
-		const settings = this.getSettings();
 		if (text.length > settings.maxSelectionChars) {
 			const rect = this.getSelectionRect(selection, selectionContext.rectOffset);
 			return rect ? { text, rect } : null;
@@ -81,6 +93,28 @@ export class PdfSelectionReader {
 			.find((element): element is HTMLElement => Boolean(element));
 
 		return innerPdfContainer ?? view.containerEl;
+	}
+
+	private getActiveContainer(): HTMLElement | null {
+		// Try PDF first
+		const pdfContainer = this.getActivePdfContainer();
+		if (pdfContainer) {
+			return pdfContainer;
+		}
+
+		// Then try Markdown
+		return this.getActiveMarkdownContainer();
+	}
+
+	private getActiveMarkdownContainer(): HTMLElement | null {
+		const activeLeaf = this.app.workspace.activeLeaf;
+		const view = activeLeaf?.view as MarkdownLikeView | undefined;
+		if (!view?.containerEl || view.getViewType() !== "markdown") {
+			return null;
+		}
+
+		// Return the view's content element which contains the editor
+		return view.containerEl;
 	}
 
 	private isPdfView(view: PdfLikeView): boolean {
