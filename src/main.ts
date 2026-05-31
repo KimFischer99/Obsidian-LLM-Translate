@@ -234,15 +234,13 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 		}
 
 		// Reopen in the right sidebar
-		const leaf = this.app.workspace.getRightLeaf(false);
+		let leaf = this.app.workspace.getRightLeaf(false);
+		if (!leaf) {
+			leaf = this.app.workspace.getRightLeaf(true);
+		}
 		if (!leaf) {
 			new Notice(t("notice.cannotOpenSidebar"));
 			return;
-		}
-		// Expand the right sidebar
-		const rightSplit = (this.app.workspace as unknown as { rightSplit?: { collapsed?: boolean } }).rightSplit;
-		if (rightSplit?.collapsed) {
-			rightSplit.collapsed = false;
 		}
 		await leaf.setViewState({ type: PDF_OLLAMA_TRANSLATOR_VIEW_TYPE, active: true });
 		this.app.workspace.revealLeaf(leaf);
