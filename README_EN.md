@@ -50,23 +50,31 @@ Download the installer from the official website and follow the prompts. Ollama 
 
 ### Step 2: Pull Translation Model
 
-We recommend using a lightweight translation model with small size and high quality:
+We recommend Tencent's open-source HY-MT2-1.8B translation model, which is small in size and high in quality:
 
 ```bash
-ollama pull <model-name>
+ollama pull RogerBen/HY-MT2-1.8B:latest
 ```
 
-> 💡 The first download may take some time. Once downloaded, it can be used offline.
+> 💡 This model is about 1.5GB. The first download may take some time. Once downloaded, it can be used offline.
 
 ### Step 3: Configure Plugin
 
 1. Open Obsidian, go to **Settings → Community plugins**
 2. Enable **LLM Translator**
 3. Click the plugin settings icon to open the settings page
-4. In **Service → Translation service**, select **Local LLM**
-5. In **Local model endpoint**, enter `http://localhost:11434`
-6. In **Model name**, select your pulled model
-7. Click **Test** button to verify connection
+4. Fill in the following recommended settings:
+
+| Setting | Recommended Value |
+|---------|-------------------|
+| Translation scope | Global |
+| Translation service | Local LLM |
+| Local model endpoint | `http://localhost:11434` |
+| Model name | `RogerBen/HY-MT2-1.8B:latest` |
+| Source language | Auto |
+| Target language | 简体中文 |
+
+5. Click **Test** button to verify connection
 
 ### Step 4: Test Translation
 
