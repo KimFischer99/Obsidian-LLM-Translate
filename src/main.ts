@@ -227,15 +227,22 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 		this.popup.hide();
 
 		// Detach any existing leaves first to force right-side creation
+		// Detach any existing leaves
 		const existingLeaves = this.app.workspace.getLeavesOfType(PDF_OLLAMA_TRANSLATOR_VIEW_TYPE);
 		for (const leaf of existingLeaves) {
 			leaf.detach();
 		}
 
+		// Reopen in the right sidebar
 		const leaf = this.app.workspace.getRightLeaf(false);
 		if (!leaf) {
 			new Notice(t("notice.cannotOpenSidebar"));
 			return;
+		}
+		// Expand the right sidebar
+		const rightSplit = (this.app.workspace as unknown as { rightSplit?: { collapsed?: boolean } }).rightSplit;
+		if (rightSplit?.collapsed) {
+			rightSplit.collapsed = false;
 		}
 		await leaf.setViewState({ type: PDF_OLLAMA_TRANSLATOR_VIEW_TYPE, active: true });
 		this.app.workspace.revealLeaf(leaf);
