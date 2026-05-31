@@ -109,7 +109,6 @@
 
 .pdf-ollama-translator-popup__result {
 	text-align: justify;
-	text-justify: inter-ideograph;
 	white-space: pre-wrap;
 	word-break: break-word;
 }
@@ -279,7 +278,6 @@
 	min-height: 180px;
 	background: transparent;
 	text-align: justify;
-	text-justify: inter-ideograph;
 }
 
 .pdf-ollama-translator-sidebar__panel.is-placeholder {
