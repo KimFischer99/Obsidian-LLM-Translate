@@ -137,15 +137,13 @@
 	color: var(--text-error);
 }
 
-.annotationLayer :is(.highlightAnnotation, .popupAnnotation) :is(.popup, .popupWrapper, .annotationCommentButton, .commentButton),
-.annotationLayer .highlightAnnotation + .popupAnnotation,
-.annotationLayer .popupAnnotation:has(.popupContent:empty),
-.annotationLayer .popupAnnotation,
-.annotationLayer .popup,
-.annotationLayer .annotationCommentButton {
-	display: none !important;
-	visibility: hidden !important;
-	pointer-events: none !important;
+.annotationLayer.annotationLayer :is(.highlightAnnotation, .popupAnnotation) :is(.popup, .popupWrapper, .annotationCommentButton, .commentButton),
+.annotationLayer.annotationLayer .popupAnnotation,
+.annotationLayer.annotationLayer .popup,
+.annotationLayer.annotationLayer .annotationCommentButton {
+	display: none;
+	visibility: hidden;
+	pointer-events: none;
 }
 
 .pdf-ollama-translator-highlight-note-editor {
@@ -408,15 +406,15 @@
 	min-width: 0;
 }
 
-.pdf-ollama-translator-sidebar__highlight-swatch {
+.pdf-ollama-translator-sidebar__highlight-palette .pdf-ollama-translator-sidebar__highlight-swatch {
 	appearance: none;
 	width: 22px;
 	height: 22px;
 	padding: 0;
 	border: 1px solid var(--background-modifier-border);
 	border-radius: 50%;
-	background: var(--pdf-ollama-translator-highlight-color, #fff36d) !important;
-	background-color: var(--pdf-ollama-translator-highlight-color, #fff36d) !important;
+	background: var(--pdf-ollama-translator-highlight-color, #fff36d);
+	background-color: var(--pdf-ollama-translator-highlight-color, #fff36d);
 	color: transparent;
 	box-shadow: none;
 	cursor: pointer;
