@@ -58,11 +58,10 @@
 
 ### ✏️ Native PDF Highlight Annotations
 
-- **Real PDF annotations** — Highlights are written as standard PDF `/Highlight` annotations using pdf-lib, not temporary CSS overlays. They persist across PDF readers.
-- **5 highlight colors** — Yellow, Red, Blue, Green, Purple. Configurable default color in settings.
-- **Toggle & undo** — Click the highlight button in the translation popup to highlight; click again to remove. Cmd+Z / Ctrl+Z to undo the last highlight.
-- **Highlight notes** — Click any highlight to add a floating note. Notes are stored in the PDF annotation's `Contents` field and persist with the file.
-- **Smart persistence** — Highlights are debounced (5s delay) and auto-saved when switching away from the PDF view, avoiding file conflicts during active reading.
+- **Persistent highlights** — Written as standard PDF annotations, visible across all PDF readers
+- **5 colors** — Yellow, Red, Blue, Green, Purple; configurable default
+- **Highlight notes** — Click any highlight to attach a note, stored in the PDF
+- **Toggle & undo** — Click again to remove, Cmd+Z / Ctrl+Z to undo
 
 ---
 
