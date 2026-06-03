@@ -26,7 +26,7 @@
 <p align="center">一款基于本地大模型驱动的 Obsidian 划词翻译插件，支持 PDF 和 Markdown 文件的实时翻译。</p>
 
 <p align="center">
-  <img src="assets/screenshot.png" alt="LLM Translator Screenshot" width="720" style="border-radius: 8px;">
+  <img src="assets/screenshot.webp" alt="LLM Translator Screenshot" width="720" style="border-radius: 8px;">
 </p>
 
 ---
@@ -56,6 +56,14 @@
 - 自动跟随 Obsidian 系统语言
 - 支持简体中文 / English 界面
 
+### ✏️ 原生 PDF 高亮注释
+
+- **真实 PDF 注释** — 使用 pdf-lib 将高亮写入标准 PDF `/Highlight` 注释，而非临时 CSS 覆盖层。跨 PDF 阅读器持久保存。
+- **5 种高亮颜色** — 黄色、红色、蓝色、绿色、紫色，可在设置中配置默认颜色。
+- **切换与撤销** — 在翻译弹窗中点击高亮按钮即可标注；再次点击移除。Cmd+Z / Ctrl+Z 撤销上一次高亮。
+- **高亮批注** — 点击任意高亮可添加浮动批注，批注存储在 PDF 注释的 `Contents` 字段中，随文件持久保存。
+- **智能持久化** — 高亮采用 5 秒防抖延迟，切换离开 PDF 视图时自动保存，避免活跃阅读时的文件冲突。
+
 ---
 
 ## 快速开始
@@ -83,11 +91,11 @@ ollama pull RogerBen/HY-MT2-1.8B:latest
 mkdir -p YourVault/.obsidian/plugins/llm-translator
 
 # 下载 Release 文件
-curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translator/releases/download/0.2.3/main.js \
+curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translator/releases/download/0.3.0/main.js \
   -o YourVault/.obsidian/plugins/llm-translator/main.js
-curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translator/releases/download/0.2.3/manifest.json \
+curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translator/releases/download/0.3.0/manifest.json \
   -o YourVault/.obsidian/plugins/llm-translator/manifest.json
-curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translator/releases/download/0.2.3/styles.css \
+curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translator/releases/download/0.3.0/styles.css \
   -o YourVault/.obsidian/plugins/llm-translator/styles.css
 ```
 

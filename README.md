@@ -26,7 +26,7 @@
 <p align="center">A local LLM-powered translation plugin for Obsidian, supporting real-time text selection translation in PDF and Markdown files.</p>
 
 <p align="center">
-  <img src="assets/screenshot.png" alt="LLM Translator Screenshot" width="720" style="border-radius: 8px;">
+  <img src="assets/screenshot.webp" alt="LLM Translator Screenshot" width="720" style="border-radius: 8px;">
 </p>
 
 ---
@@ -56,6 +56,14 @@
 - Automatically follows Obsidian system language
 - Supports Chinese / English interface
 
+### ✏️ Native PDF Highlight Annotations
+
+- **Real PDF annotations** — Highlights are written as standard PDF `/Highlight` annotations using pdf-lib, not temporary CSS overlays. They persist across PDF readers.
+- **5 highlight colors** — Yellow, Red, Blue, Green, Purple. Configurable default color in settings.
+- **Toggle & undo** — Click the highlight button in the translation popup to highlight; click again to remove. Cmd+Z / Ctrl+Z to undo the last highlight.
+- **Highlight notes** — Click any highlight to add a floating note. Notes are stored in the PDF annotation's `Contents` field and persist with the file.
+- **Smart persistence** — Highlights are debounced (5s delay) and auto-saved when switching away from the PDF view, avoiding file conflicts during active reading.
+
 ---
 
 ## Quick Start
@@ -83,11 +91,11 @@ Download and install via Terminal:
 mkdir -p YourVault/.obsidian/plugins/llm-translator
 
 # Download Release files
-curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translator/releases/download/0.2.3/main.js \
+curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translator/releases/download/0.3.0/main.js \
   -o YourVault/.obsidian/plugins/llm-translator/main.js
-curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translator/releases/download/0.2.3/manifest.json \
+curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translator/releases/download/0.3.0/manifest.json \
   -o YourVault/.obsidian/plugins/llm-translator/manifest.json
-curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translator/releases/download/0.2.3/styles.css \
+curl -sL https://github.com/KimFischer99/Obsidian-LLM-Translator/releases/download/0.3.0/styles.css \
   -o YourVault/.obsidian/plugins/llm-translator/styles.css
 ```
 
