@@ -5,6 +5,7 @@ import { PdfSelectionReader } from "./pdfSelection";
 import { PdfOllamaTranslatorSettingTab } from "./settings";
 import { PDF_OLLAMA_TRANSLATOR_VIEW_TYPE, PdfOllamaTranslatorSidebarView } from "./sidebarView";
 import { TranslationPopup } from "./translationPopup";
+import { PdfHighlightService } from "./pdfHighlight/PdfHighlightService";
 import { t } from "./i18n";
 import type {
 	ConnectionTestResult,
@@ -37,6 +38,7 @@ const DEFAULT_SETTINGS: PdfOllamaTranslatorSettings = {
 	popupHeight: 220,
 	showCopyButton: true,
 	showRetryButton: true,
+	defaultHighlightColor: "yellow",
 	customPrompt: DEFAULT_TRANSLATION_PROMPT,
 	topK: 20,
 	topP: 0.6,
@@ -58,6 +60,7 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 	settings: PdfOllamaTranslatorSettings;
 	private translator: TranslatorService;
 	private selectionReader: PdfSelectionReader;
+	private highlightService: PdfHighlightService;
 	private popup: TranslationPopup;
 	private selectionTimer: number | undefined;
 	private activeRequest: AbortController | undefined;
@@ -76,9 +79,11 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 
 		this.translator = new TranslatorService(() => this.settings);
 		this.selectionReader = new PdfSelectionReader(this.app, () => this.settings, this.debug);
+		this.highlightService = new PdfHighlightService(this.app, this.debug);
 		this.popup = new TranslationPopup({
 			showCopyButton: this.settings.showCopyButton,
 			showRetryButton: this.settings.showRetryButton,
+			defaultHighlightColor: this.settings.defaultHighlightColor,
 			fontSize: this.settings.fontSize,
 			lineHeight: this.settings.lineHeight,
 			sourceLanguage: this.settings.sourceLanguage,
@@ -90,6 +95,7 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 				void this.updateSettings({ sourceLanguage, targetLanguage }),
 			onResize: (width, height) => void this.updateSettings({ popupWidth: width, popupHeight: height }),
 			onRetry: () => void this.retryLastSelection(),
+			onHighlight: () => void this.highlightActiveSelection(),
 		});
 
 		this.addSettingTab(new PdfOllamaTranslatorSettingTab(this.app, this));
@@ -103,11 +109,13 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 			callback: () => void this.activateSidebarView(),
 		});
 		this.registerSelectionEvents();
+		this.registerWorkspaceEvents();
 	}
 
 	onunload(): void {
 		this.cancelActiveRequest();
 		window.clearTimeout(this.selectionTimer);
+		this.highlightService?.flushAllPending();
 		this.popup?.destroy();
 	}
 
@@ -206,6 +214,21 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 		await this.translateSelection(selection, true);
 	}
 
+	async highlightActiveSelection(): Promise<void> {
+		const selection = this.selectionReader.readSelection() ?? this.lastSelection;
+		if (!selection) {
+			new Notice(t("notice.selectTextFirst"));
+			return;
+		}
+
+		try {
+			await this.highlightService.toggleSelectionHighlight(selection, this.settings.defaultHighlightColor);
+		} catch (error) {
+			this.debug("PDF highlight failed.", error);
+			new Notice(`${t("notice.highlightFailed")} ${toReadableMessage(error)}`.trim());
+		}
+	}
+
 	openSettingsTab(): void {
 		const setting = (this.app as AppWithSetting).setting;
 		if (!setting) {
@@ -250,12 +273,24 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 		this.registerDomEvent(document, "pointerdown", (event) => this.handleDocumentPointerDown(event), true);
 		this.registerDomEvent(document, "selectionchange", () => this.handleSelectionChange());
 		this.registerDomEvent(document, "mouseup", () => this.finishPointerSelection());
+		this.registerDomEvent(document, "keydown", (event) => this.handleDocumentKeyDown(event));
 		this.registerDomEvent(document, "keyup", () => this.scheduleSelectionTranslation());
 		this.registerDomEvent(window, "resize", () => this.popup.reposition());
 		this.registerDomEvent(document, "scroll", () => this.popup.reposition(), true);
 	}
 
+	private registerWorkspaceEvents(): void {
+		this.registerEvent(
+			this.app.workspace.on("active-leaf-change", () => {
+				this.highlightService.flushPendingForInactiveViews();
+			}),
+		);
+	}
+
 	private handleDocumentPointerDown(event: MouseEvent): void {
+		if (isHighlightNoteTarget(event.target)) {
+			return;
+		}
 		if (this.popup.containsTarget(event.target)) {
 			return;
 		}
@@ -278,6 +313,21 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 		}
 		this.isPointerSelecting = false;
 		this.scheduleSelectionTranslation();
+	}
+
+	private handleDocumentKeyDown(event: KeyboardEvent): void {
+		if (event.key.toLowerCase() !== "z" || event.shiftKey || (!event.metaKey && !event.ctrlKey)) {
+			return;
+		}
+
+		const selection = this.selectionReader.readSelection();
+		if (!this.highlightService.canUndoSelection(selection)) {
+			return;
+		}
+
+		event.preventDefault();
+		event.stopPropagation();
+		this.highlightService.undoLastHighlight();
 	}
 
 	private scheduleSelectionTranslation(): void {
@@ -452,6 +502,7 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 		this.popup.updateOptions({
 			showCopyButton: this.settings.showCopyButton,
 			showRetryButton: this.settings.showRetryButton,
+			defaultHighlightColor: this.settings.defaultHighlightColor,
 			fontSize: this.settings.fontSize,
 			lineHeight: this.settings.lineHeight,
 			sourceLanguage: this.settings.sourceLanguage,
@@ -463,6 +514,7 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 				void this.updateSettings({ sourceLanguage, targetLanguage }),
 			onResize: (width, height) => void this.updateSettings({ popupWidth: width, popupHeight: height }),
 			onRetry: () => void this.retryLastSelection(),
+			onHighlight: () => void this.highlightActiveSelection(),
 		});
 	}
 
@@ -521,4 +573,21 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 		}
 		console.debug("[LLM Translator]", message, detail ?? "");
 	};
+}
+
+function toReadableMessage(error: unknown): string {
+	if (error instanceof Error && error.message) {
+		return error.message;
+	}
+	if (typeof error === "string") {
+		return error;
+	}
+	return "";
+}
+
+function isHighlightNoteTarget(target: EventTarget | null): boolean {
+	return (
+		target instanceof Element &&
+		Boolean(target.closest(".pdf-ollama-translator-highlight-overlay, .pdf-ollama-translator-highlight-note-editor"))
+	);
 }

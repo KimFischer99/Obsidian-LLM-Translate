@@ -1,8 +1,9 @@
 import { App, DropdownComponent, Notice, PluginSettingTab, Setting } from "obsidian";
 import type PdfOllamaTranslatorPlugin from "./main";
 import { DEFAULT_TRANSLATION_PROMPT } from "./translatorService";
-import type { TranslationLanguage, TranslationProviderId } from "./types";
+import type { HighlightColorId, TranslationLanguage, TranslationProviderId } from "./types";
 import { t } from "./i18n";
+import { HIGHLIGHT_COLOR_ORDER, getHighlightColor } from "./pdfHighlight/colors";
 
 const SOURCE_LANGUAGE_OPTIONS: Array<{ value: TranslationLanguage; label: string }> = [
 	{ value: "auto", label: "Auto" },
@@ -173,6 +174,19 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 						await this.plugin.updateSettings({ showRetryButton: value });
 					}),
 			);
+
+		new Setting(containerEl)
+			.setName(t("settings.defaultHighlightColor"))
+			.addDropdown((dropdown) => {
+				for (const colorId of HIGHLIGHT_COLOR_ORDER) {
+					dropdown.addOption(colorId, getHighlightColor(colorId).label);
+				}
+				return dropdown
+					.setValue(this.plugin.settings.defaultHighlightColor)
+					.onChange(async (value) => {
+						await this.plugin.updateSettings({ defaultHighlightColor: value as HighlightColorId });
+					});
+			});
 
 		this.addSection(t("settings.section.advanced"));
 		new Setting(containerEl)

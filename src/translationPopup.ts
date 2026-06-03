@@ -1,12 +1,14 @@
 import { setIcon } from "obsidian";
-import type { TranslationLanguage, TranslationResult } from "./types";
+import type { HighlightColorId, TranslationLanguage, TranslationResult } from "./types";
 import { t } from "./i18n";
+import { getHighlightColor } from "./pdfHighlight/colors";
 
 type PopupState = "loading" | "success" | "error";
 
 interface PopupOptions {
 	showCopyButton: boolean;
 	showRetryButton: boolean;
+	defaultHighlightColor: HighlightColorId;
 	fontSize: number;
 	lineHeight: number;
 	sourceLanguage: TranslationLanguage;
@@ -20,6 +22,7 @@ interface PopupOptions {
 	) => void;
 	onResize: (width: number, height: number) => void;
 	onRetry: () => void;
+	onHighlight: () => void;
 }
 
 const SOURCE_LANGUAGE_OPTIONS: Array<{ value: TranslationLanguage; label: string }> = [
@@ -142,6 +145,12 @@ export class TranslationPopup {
 				await navigator.clipboard.writeText(this.lastResult);
 			});
 		}
+
+		const highlightColor = getHighlightColor(this.options.defaultHighlightColor);
+		const highlightButton = this.createIconButton("highlighter", t("popup.highlightSelection"));
+		highlightButton.addClass("pdf-ollama-translator-popup__button--highlight");
+		highlightButton.style.setProperty("--pdf-ollama-translator-highlight-color", highlightColor.css);
+		highlightButton.onClickEvent(() => this.options.onHighlight());
 
 		if (this.options.showRetryButton) {
 			const retryButton = this.createIconButton("refresh-cw", t("popup.retryTranslation"));

@@ -19,6 +19,7 @@
     "rememberPopupSize": "Remember window size",
     "showCopyButton": "Show copy button",
     "showRetryButton": "Show retry button",
+    "defaultHighlightColor": "Default highlight color",
     "maxSelectionChars": "Max selection length",
     "maxSelectionCharsDesc": "Selections exceeding this character count will not be translated.",
     "debounce": "Selection trigger delay",
@@ -62,11 +63,13 @@
     "copy": "Copy:",
     "raw": "Raw",
     "result": "Result",
-    "both": "Both"
+    "both": "Both",
+    "highlightColor": "Highlight"
   },
   "popup": {
     "translating": "Translating...",
     "copyTranslation": "Copy translation",
+    "highlightSelection": "Highlight selected PDF text",
     "retryTranslation": "Retry translation",
     "close": "Close",
     "sourceLanguage": "Source language",
@@ -80,7 +83,13 @@
     "cannotOpenSettings": "Cannot open Obsidian settings.",
     "cannotOpenSidebar": "Cannot open translation sidebar.",
     "noSelectionToRetry": "No selection to retry.",
-    "selectionExceedsLimit": "Selection exceeds ${count} characters."
+    "selectionExceedsLimit": "Selection exceeds ${count} characters.",
+    "highlightPdfOnly": "PDF highlighting only works for selected text in a PDF.",
+    "highlightNotFound": "Could not locate this selection in the PDF text layer.",
+    "highlightAdded": "PDF highlight added. Reopen the PDF if Obsidian does not refresh it immediately.",
+    "highlightRemoved": "PDF highlight removed.",
+    "highlightUpdated": "PDF highlight color updated.",
+    "highlightFailed": "Could not write the PDF highlight."
   },
   "error": {
     "selectLocalModel": "Please select a local model in plugin settings.",

@@ -1,3 +1,5 @@
+import type { TFile } from "obsidian";
+
 export interface PdfOllamaTranslatorSettings {
 	translationScope: "global" | "pdf-only";
 	translationProvider: TranslationProviderId;
@@ -21,6 +23,7 @@ export interface PdfOllamaTranslatorSettings {
 	popupHeight: number;
 	showCopyButton: boolean;
 	showRetryButton: boolean;
+	defaultHighlightColor: HighlightColorId;
 	customPrompt: string;
 	topK: number;
 	topP: number;
@@ -30,6 +33,8 @@ export interface PdfOllamaTranslatorSettings {
 	cleanModelOutput: boolean;
 	debugLogging: boolean;
 }
+
+export type HighlightColorId = "yellow" | "red" | "blue" | "green" | "purple";
 
 export type TranslationProviderId = "local-llm" | "cloud-api" | "google" | "bing";
 
@@ -53,6 +58,17 @@ export interface TranslationResult {
 export interface PdfTextSelection {
 	text: string;
 	rect: DOMRect;
+	file?: TFile;
+	pageHint?: number;
+	overlayRects?: PdfSelectionOverlayRect[];
+}
+
+export interface PdfSelectionOverlayRect {
+	pageEl: HTMLElement;
+	left: number;
+	top: number;
+	width: number;
+	height: number;
 }
 
 export interface SidebarTranslationState {

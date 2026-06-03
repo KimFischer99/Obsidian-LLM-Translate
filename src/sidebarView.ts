@@ -1,7 +1,8 @@
 import { ItemView, Notice, WorkspaceLeaf, setIcon } from "obsidian";
 import type PdfOllamaTranslatorPlugin from "./main";
-import type { TranslationLanguage, TranslationProviderId } from "./types";
+import type { HighlightColorId, TranslationLanguage, TranslationProviderId } from "./types";
 import { t } from "./i18n";
+import { HIGHLIGHT_COLOR_ORDER, getHighlightColor } from "./pdfHighlight/colors";
 
 export const PDF_OLLAMA_TRANSLATOR_VIEW_TYPE = "llm-translator-sidebar";
 
@@ -172,9 +173,12 @@ export class PdfOllamaTranslatorSidebarView extends ItemView {
 	private renderBottomControls(container: HTMLElement): void {
 		const controlsEl = container.createDiv({ cls: "pdf-ollama-translator-sidebar__controls" });
 
-		const autoRowEl = controlsEl.createDiv({ cls: "pdf-ollama-translator-sidebar__control-row" });
-		autoRowEl.createSpan({ text: t("sidebar.autoTrans"), cls: "pdf-ollama-translator-sidebar__control-label" });
-		const autoToggle = autoRowEl.createEl("input", {
+		this.renderHighlightControls(controlsEl);
+
+		const quickRowEl = controlsEl.createDiv({ cls: "pdf-ollama-translator-sidebar__quick-row" });
+		const autoGroupEl = quickRowEl.createDiv({ cls: "pdf-ollama-translator-sidebar__quick-group" });
+		autoGroupEl.createSpan({ text: t("sidebar.autoTrans"), cls: "pdf-ollama-translator-sidebar__control-label" });
+		const autoToggle = autoGroupEl.createEl("input", {
 			cls: "pdf-ollama-translator-sidebar__toggle",
 			attr: { type: "checkbox", "aria-label": t("sidebar.autoTransLabel") },
 		});
@@ -184,9 +188,9 @@ export class PdfOllamaTranslatorSidebarView extends ItemView {
 			this.render();
 		};
 
-		const selectionRowEl = controlsEl.createDiv({ cls: "pdf-ollama-translator-sidebar__control-row" });
-		selectionRowEl.createSpan({ text: t("sidebar.selection"), cls: "pdf-ollama-translator-sidebar__control-label" });
-		selectionRowEl.createEl("button", {
+		const selectionGroupEl = quickRowEl.createDiv({ cls: "pdf-ollama-translator-sidebar__quick-group" });
+		selectionGroupEl.createSpan({ text: t("sidebar.selection"), cls: "pdf-ollama-translator-sidebar__control-label" });
+		selectionGroupEl.createEl("button", {
 			text: t("sidebar.clear"),
 			cls: "pdf-ollama-translator-sidebar__clear-button",
 		}).onClickEvent(() => {
@@ -204,6 +208,32 @@ export class PdfOllamaTranslatorSidebarView extends ItemView {
 				text: item.label,
 				cls: "pdf-ollama-translator-sidebar__copy-button",
 			}).onClickEvent(() => void item.action());
+		}
+	}
+
+	private renderHighlightControls(container: HTMLElement): void {
+		const rowEl = container.createDiv({ cls: "pdf-ollama-translator-sidebar__highlight-row" });
+		rowEl.createSpan({ text: t("sidebar.highlightColor"), cls: "pdf-ollama-translator-sidebar__control-label" });
+		const paletteEl = rowEl.createDiv({ cls: "pdf-ollama-translator-sidebar__highlight-palette" });
+
+		for (const colorId of HIGHLIGHT_COLOR_ORDER) {
+			const color = getHighlightColor(colorId);
+			const button = paletteEl.createEl("button", {
+				cls: "pdf-ollama-translator-sidebar__highlight-swatch",
+				attr: {
+					"aria-label": color.label,
+					"aria-pressed": String(this.plugin.settings.defaultHighlightColor === colorId),
+					title: color.label,
+				},
+			});
+			button.style.setProperty("--pdf-ollama-translator-highlight-color", color.css);
+			button.style.backgroundColor = color.css;
+			button.style.color = "transparent";
+			button.toggleClass("is-active", this.plugin.settings.defaultHighlightColor === colorId);
+			button.onClickEvent(async () => {
+				await this.plugin.updateSettings({ defaultHighlightColor: colorId as HighlightColorId });
+				this.render();
+			});
 		}
 	}
 }

@@ -20,6 +20,12 @@ interface MarkdownLikeView {
 interface SelectionWithContext {
 	selection: Selection;
 	rectOffset?: DOMRect;
+	pageHint?: number;
+}
+
+interface ActiveSelectionContainer {
+	container: HTMLElement;
+	file?: TFile | null;
 }
 
 const PDF_CONTAINER_SELECTORS = [
@@ -41,14 +47,14 @@ export class PdfSelectionReader {
 
 	readSelection(): PdfTextSelection | null {
 		const settings = this.getSettings();
-		const container = settings.translationScope === "global"
+		const activeContext = settings.translationScope === "global"
 			? this.getActiveContainer()
 			: this.getActivePdfContainer();
-		if (!container) {
+		if (!activeContext) {
 			return null;
 		}
 
-		const selectionContext = this.getSelectionContext(container);
+		const selectionContext = this.getSelectionContext(activeContext.container);
 		if (!selectionContext) {
 			return null;
 		}
@@ -65,7 +71,13 @@ export class PdfSelectionReader {
 
 		if (text.length > settings.maxSelectionChars) {
 			const rect = this.getSelectionRect(selection, selectionContext.rectOffset);
-			return rect ? { text, rect } : null;
+			return rect ? {
+				text,
+				rect,
+				file: activeContext.file ?? undefined,
+				pageHint: selectionContext.pageHint,
+				overlayRects: this.getSelectionOverlayRects(selection),
+			} : null;
 		}
 
 		if (settings.restrictSourceLanguages && !isLikelySupportedSourceText(text, settings.sourceLanguage)) {
@@ -74,14 +86,20 @@ export class PdfSelectionReader {
 		}
 
 		const rect = this.getSelectionRect(selection, selectionContext.rectOffset);
-		return rect ? { text, rect } : null;
+		return rect ? {
+			text,
+			rect,
+			file: activeContext.file ?? undefined,
+			pageHint: selectionContext.pageHint,
+			overlayRects: this.getSelectionOverlayRects(selection),
+		} : null;
 	}
 
 	isSelectionTooLong(selection: PdfTextSelection): boolean {
 		return selection.text.length > this.getSettings().maxSelectionChars;
 	}
 
-	private getActivePdfContainer(): HTMLElement | null {
+	private getActivePdfContainer(): ActiveSelectionContainer | null {
 		const activeLeaf = this.app.workspace.activeLeaf;
 		const view = activeLeaf?.view as PdfLikeView | undefined;
 		if (!view?.containerEl || !this.isPdfView(view)) {
@@ -92,10 +110,13 @@ export class PdfSelectionReader {
 			.map((selector) => view.containerEl.querySelector<HTMLElement>(selector))
 			.find((element): element is HTMLElement => Boolean(element));
 
-		return innerPdfContainer ?? view.containerEl;
+		return {
+			container: innerPdfContainer ?? view.containerEl,
+			file: view.file ?? undefined,
+		};
 	}
 
-	private getActiveContainer(): HTMLElement | null {
+	private getActiveContainer(): ActiveSelectionContainer | null {
 		// Try PDF first
 		const pdfContainer = this.getActivePdfContainer();
 		if (pdfContainer) {
@@ -106,7 +127,7 @@ export class PdfSelectionReader {
 		return this.getActiveMarkdownContainer();
 	}
 
-	private getActiveMarkdownContainer(): HTMLElement | null {
+	private getActiveMarkdownContainer(): ActiveSelectionContainer | null {
 		const activeLeaf = this.app.workspace.activeLeaf;
 		const view = activeLeaf?.view as MarkdownLikeView | undefined;
 		if (!view?.containerEl || view.getViewType() !== "markdown") {
@@ -114,7 +135,10 @@ export class PdfSelectionReader {
 		}
 
 		// Return the view's content element which contains the editor
-		return view.containerEl;
+		return {
+			container: view.containerEl,
+			file: view.file ?? undefined,
+		};
 	}
 
 	private isPdfView(view: PdfLikeView): boolean {
@@ -138,7 +162,10 @@ export class PdfSelectionReader {
 			documentSelection.rangeCount > 0 &&
 			this.selectionBelongsToContainer(documentSelection, container)
 		) {
-			return { selection: documentSelection };
+			return {
+				selection: documentSelection,
+				pageHint: this.getSelectionPageHint(documentSelection),
+			};
 		}
 
 		const iframeSelection = this.getIframeSelection(container);
@@ -167,6 +194,7 @@ export class PdfSelectionReader {
 				return {
 					selection: frameSelection,
 					rectOffset: frame.getBoundingClientRect(),
+					pageHint: this.getSelectionPageHint(frameSelection),
 				};
 			} catch (error) {
 				this.debug("Could not inspect PDF iframe selection.", error);
@@ -174,6 +202,39 @@ export class PdfSelectionReader {
 		}
 
 		return null;
+	}
+
+	private getSelectionPageHint(selection: Selection): number | undefined {
+		if (selection.rangeCount === 0) {
+			return undefined;
+		}
+
+		const range = selection.getRangeAt(0);
+		const ancestor = range.commonAncestorContainer;
+		const element = ancestor instanceof Element ? ancestor : ancestor.parentElement;
+		const pageEl = element?.closest<HTMLElement>("[data-page-number], .page, .pdf-page");
+		if (!pageEl) {
+			return undefined;
+		}
+
+		const candidates = [
+			pageEl.dataset.pageNumber,
+			pageEl.getAttribute("data-page-number"),
+			pageEl.getAttribute("aria-label"),
+		].filter((value): value is string => Boolean(value));
+
+		for (const candidate of candidates) {
+			const match = candidate.match(/\d+/);
+			if (!match) {
+				continue;
+			}
+			const page = Number.parseInt(match[0], 10);
+			if (Number.isFinite(page) && page > 0) {
+				return page;
+			}
+		}
+
+		return undefined;
 	}
 
 	private getSelectionRect(selection: Selection, offset?: DOMRect): DOMRect | null {
@@ -198,6 +259,33 @@ export class PdfSelectionReader {
 			baseRect.width,
 			baseRect.height,
 		);
+	}
+
+	private getSelectionOverlayRects(selection: Selection): PdfTextSelection["overlayRects"] {
+		if (selection.rangeCount === 0) {
+			return undefined;
+		}
+
+		const range = selection.getRangeAt(0);
+		const ancestor = range.commonAncestorContainer;
+		const element = ancestor instanceof Element ? ancestor : ancestor.parentElement;
+		const pageEl = element?.closest<HTMLElement>("[data-page-number], .page, .pdf-page");
+		if (!pageEl) {
+			return undefined;
+		}
+
+		const pageRect = pageEl.getBoundingClientRect();
+		const rects = Array.from(range.getClientRects())
+			.filter((rect) => rect.width > 0 && rect.height > 0)
+			.map((rect) => ({
+				pageEl,
+				left: rect.left - pageRect.left,
+				top: rect.top - pageRect.top,
+				width: rect.width,
+				height: rect.height,
+			}));
+
+		return rects.length > 0 ? rects : undefined;
 	}
 }
 

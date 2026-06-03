@@ -19,6 +19,7 @@
     "rememberPopupSize": "记住窗口大小",
     "showCopyButton": "显示复制按钮",
     "showRetryButton": "显示重新翻译按钮",
+    "defaultHighlightColor": "默认高亮颜色",
     "maxSelectionChars": "最大选区长度",
     "maxSelectionCharsDesc": "超过该字符数的选区不会发送翻译请求。",
     "debounce": "选区触发延迟",
@@ -62,11 +63,13 @@
     "copy": "Copy:",
     "raw": "Raw",
     "result": "Result",
-    "both": "Both"
+    "both": "Both",
+    "highlightColor": "高亮"
   },
   "popup": {
     "translating": "翻译中...",
     "copyTranslation": "复制译文",
+    "highlightSelection": "高亮选中的 PDF 文本",
     "retryTranslation": "重新翻译",
     "close": "关闭",
     "sourceLanguage": "源语言",
@@ -80,7 +83,13 @@
     "cannotOpenSettings": "无法打开 Obsidian 设置页。",
     "cannotOpenSidebar": "无法打开翻译侧边栏。",
     "noSelectionToRetry": "没有可重新翻译的选区。",
-    "selectionExceedsLimit": "选中文本超过 ${count} 个字符。"
+    "selectionExceedsLimit": "选中文本超过 ${count} 个字符。",
+    "highlightPdfOnly": "PDF 高亮只支持 PDF 中选中的文本。",
+    "highlightNotFound": "无法在 PDF 文本层中定位这个选区。",
+    "highlightAdded": "已写入 PDF 高亮。如果 Obsidian 没有立刻刷新，请重新打开该 PDF。",
+    "highlightRemoved": "已移除 PDF 高亮。",
+    "highlightUpdated": "已更新 PDF 高亮颜色。",
+    "highlightFailed": "无法写入 PDF 高亮。"
   },
   "error": {
     "selectLocalModel": "请先在插件设置中选择本地模型。",

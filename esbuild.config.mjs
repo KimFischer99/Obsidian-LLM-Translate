@@ -1,6 +1,9 @@
 import esbuild from "esbuild";
 import process from "process";
 import { builtinModules as builtins } from "module";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const banner =
 `/*
@@ -10,6 +13,26 @@ if you want to view the source, please visit the github repository of this plugi
 `;
 
 const prod = process.argv[2] === "production";
+
+const pdfWorkerSourcePlugin = {
+	name: "pdf-worker-source",
+	setup(build) {
+		build.onResolve({ filter: /pdf\.worker\.mjs\?worker-source$/ }, async (args) => {
+			const packageRoot = path.dirname(fileURLToPath(import.meta.resolve("pdfjs-dist/package.json")));
+			return {
+				path: path.join(packageRoot, "legacy/build/pdf.worker.mjs"),
+				namespace: "pdf-worker-source",
+			};
+		});
+		build.onLoad({ filter: /.*/, namespace: "pdf-worker-source" }, async (args) => {
+			const source = await fs.readFile(args.path, "utf8");
+			return {
+				contents: `export default ${JSON.stringify(source)};`,
+				loader: "js",
+			};
+		});
+	},
+};
 
 const context = await esbuild.context({
 	banner: {
@@ -38,6 +61,7 @@ const context = await esbuild.context({
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
+	plugins: [pdfWorkerSourcePlugin],
 	outfile: "main.js",
 	minify: prod,
 });
