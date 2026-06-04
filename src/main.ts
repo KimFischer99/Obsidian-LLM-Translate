@@ -596,6 +596,8 @@ function toReadableMessage(error: unknown): string {
 function isHighlightNoteTarget(target: EventTarget | null): boolean {
 	return (
 		target instanceof Element &&
-		Boolean(target.closest(".pdf-ollama-translator-highlight-overlay, .pdf-ollama-translator-highlight-note-editor"))
+		Boolean(target.closest(
+			".pdf-ollama-translator-highlight-overlay, .pdf-ollama-translator-highlight-note-icon, .pdf-ollama-translator-highlight-note-editor",
+		))
 	);
 }

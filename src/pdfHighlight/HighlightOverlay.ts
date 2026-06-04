@@ -185,10 +185,12 @@ export class HighlightOverlay {
 			overlay.style.borderRadius = "2px";
 			overlay.style.pointerEvents = "auto";
 			overlay.style.cursor = "text";
+			overlay.style.zIndex = "1";
 			overlay.dataset.highlightId = id;
 			overlay.onpointerdown = (event) => {
 				event.preventDefault();
 				event.stopPropagation();
+				this.openEditor(id, overlay);
 			};
 			overlay.onclick = (event) => {
 				event.preventDefault();
@@ -324,7 +326,7 @@ export class HighlightOverlay {
 		next.style.position = "absolute";
 		next.style.inset = "0";
 		next.style.pointerEvents = "none";
-		next.style.zIndex = "5";
+		next.style.zIndex = "1000";
 		host.appendChild(next);
 		this.layers.set(host, next);
 		return next;
@@ -425,12 +427,14 @@ export class HighlightOverlay {
 		iconEl.style.left = `${anchorRect.right - layerRect.left - 4}px`;
 		iconEl.style.top = `${anchorRect.top - layerRect.top - 12}px`;
 		iconEl.style.right = "auto";
+		iconEl.style.zIndex = "2";
 		iconEl.style.setProperty("--pdf-ollama-translator-highlight-color", group.color.css);
 		iconEl.setAttribute("aria-label", "Highlight note");
 		setIcon(iconEl, "message-square");
 		iconEl.onpointerdown = (event) => {
 			event.preventDefault();
 			event.stopPropagation();
+			this.openEditor(id, iconEl);
 		};
 		iconEl.onclick = (event) => {
 			event.preventDefault();

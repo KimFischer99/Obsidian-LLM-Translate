@@ -153,12 +153,13 @@
 .pdf-ollama-translator-highlight-layer {
 	position: absolute;
 	inset: 0;
-	z-index: 5;
+	z-index: 1000;
 	pointer-events: none;
 }
 
 .pdf-ollama-translator-highlight-overlay {
 	position: absolute;
+	z-index: 1;
 	border-radius: 2px;
 	mix-blend-mode: multiply;
 	pointer-events: auto;
@@ -195,6 +196,7 @@
 
 .pdf-ollama-translator-highlight-note-icon {
 	position: absolute;
+	z-index: 2;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
