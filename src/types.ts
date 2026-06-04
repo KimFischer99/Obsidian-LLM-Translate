@@ -65,10 +65,15 @@ export interface PdfTextSelection {
 
 export interface PdfSelectionOverlayRect {
 	pageEl: HTMLElement;
+	pageNumber?: number;
 	left: number;
 	top: number;
 	width: number;
 	height: number;
+	leftRatio: number;
+	topRatio: number;
+	widthRatio: number;
+	heightRatio: number;
 }
 
 export interface SidebarTranslationState {

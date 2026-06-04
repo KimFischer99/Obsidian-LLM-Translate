@@ -217,24 +217,7 @@ export class PdfSelectionReader {
 			return undefined;
 		}
 
-		const candidates = [
-			pageEl.dataset.pageNumber,
-			pageEl.getAttribute("data-page-number"),
-			pageEl.getAttribute("aria-label"),
-		].filter((value): value is string => Boolean(value));
-
-		for (const candidate of candidates) {
-			const match = candidate.match(/\d+/);
-			if (!match) {
-				continue;
-			}
-			const page = Number.parseInt(match[0], 10);
-			if (Number.isFinite(page) && page > 0) {
-				return page;
-			}
-		}
-
-		return undefined;
+		return getPageNumber(pageEl);
 	}
 
 	private getSelectionRect(selection: Selection, offset?: DOMRect): DOMRect | null {
@@ -275,18 +258,53 @@ export class PdfSelectionReader {
 		}
 
 		const pageRect = pageEl.getBoundingClientRect();
+		if (pageRect.width <= 0 || pageRect.height <= 0) {
+			return undefined;
+		}
+
+		const pageNumber = getPageNumber(pageEl);
 		const rects = Array.from(range.getClientRects())
 			.filter((rect) => rect.width > 0 && rect.height > 0)
-			.map((rect) => ({
-				pageEl,
-				left: rect.left - pageRect.left,
-				top: rect.top - pageRect.top,
-				width: rect.width,
-				height: rect.height,
-			}));
+			.map((rect) => {
+				const left = rect.left - pageRect.left;
+				const top = rect.top - pageRect.top;
+				return {
+					pageEl,
+					pageNumber,
+					left,
+					top,
+					width: rect.width,
+					height: rect.height,
+					leftRatio: left / pageRect.width,
+					topRatio: top / pageRect.height,
+					widthRatio: rect.width / pageRect.width,
+					heightRatio: rect.height / pageRect.height,
+				};
+			});
 
 		return rects.length > 0 ? rects : undefined;
 	}
+}
+
+function getPageNumber(pageEl: HTMLElement): number | undefined {
+	const candidates = [
+		pageEl.dataset.pageNumber,
+		pageEl.getAttribute("data-page-number"),
+		pageEl.getAttribute("aria-label"),
+	].filter((value): value is string => Boolean(value));
+
+	for (const candidate of candidates) {
+		const match = candidate.match(/\d+/);
+		if (!match) {
+			continue;
+		}
+		const page = Number.parseInt(match[0], 10);
+		if (Number.isFinite(page) && page > 0) {
+			return page;
+		}
+	}
+
+	return undefined;
 }
 
 function normalizeSelectionText(value: string): string {

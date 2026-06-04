@@ -1,10 +1,13 @@
 import { setIcon } from "obsidian";
-import type { PdfTextSelection } from "../types";
+import type { PdfSelectionOverlayRect, PdfTextSelection } from "../types";
 import type { HighlightColorConfig } from "./types";
 
 const OVERLAY_CLASS = "pdf-ollama-translator-highlight-overlay";
+const NOTE_ICON_CLASS = "pdf-ollama-translator-highlight-note-icon";
+const PAGE_SELECTOR = "[data-page-number], .page, .pdf-page";
 
 interface OverlayGroup {
+	rects: PdfSelectionOverlayRect[];
 	elements: HTMLElement[];
 	icon?: HTMLElement;
 	note: string;
@@ -14,6 +17,9 @@ interface OverlayGroup {
 
 export class HighlightOverlay {
 	private groups = new Map<string, OverlayGroup>();
+	private observedDocuments = new WeakSet<Document>();
+	private observers: MutationObserver[] = [];
+	private rerenderTimer: number | undefined;
 	private editorEl: HTMLElement | undefined;
 	private textareaEl: HTMLTextAreaElement | undefined;
 	private activeId = "";
@@ -32,44 +38,15 @@ export class HighlightOverlay {
 			return;
 		}
 
-		const elements: HTMLElement[] = [];
-		for (const rect of selection.overlayRects) {
-			const pageEl = rect.pageEl;
-			const computed = getComputedStyle(pageEl);
-			if (computed.position === "static") {
-				pageEl.style.position = "relative";
-			}
-
-			const overlay = pageEl.ownerDocument.createElement("div");
-			overlay.className = OVERLAY_CLASS;
-			overlay.style.position = "absolute";
-			overlay.style.left = `${rect.left}px`;
-			overlay.style.top = `${rect.top}px`;
-			overlay.style.width = `${rect.width}px`;
-			overlay.style.height = `${rect.height}px`;
-			overlay.style.background = color.css;
-			overlay.style.opacity = "0.38";
-			overlay.style.mixBlendMode = "multiply";
-			overlay.style.borderRadius = "2px";
-			overlay.style.pointerEvents = "auto";
-			overlay.style.cursor = "text";
-			overlay.style.zIndex = "4";
-			overlay.dataset.highlightId = id;
-			overlay.onpointerdown = (event) => {
-				event.preventDefault();
-				event.stopPropagation();
-			};
-			overlay.onclick = (event) => {
-				event.preventDefault();
-				event.stopPropagation();
-				this.openEditor(id, overlay);
-			};
-			pageEl.appendChild(overlay);
-			elements.push(overlay);
-		}
-
-		const group: OverlayGroup = { elements, note, color, onNoteChange };
+		const group: OverlayGroup = {
+			rects: selection.overlayRects,
+			elements: [],
+			note,
+			color,
+			onNoteChange,
+		};
 		this.groups.set(id, group);
+		this.renderGroup(id, group);
 		this.updateNote(id, note);
 	}
 
@@ -97,13 +74,152 @@ export class HighlightOverlay {
 		if (!group) {
 			return;
 		}
+		this.clearRenderedElements(group);
+		this.groups.delete(id);
+		if (this.activeId === id) {
+			this.closeEditor();
+		}
+	}
+
+	private renderGroup(id: string, group: OverlayGroup): void {
+		this.clearRenderedElements(group);
+		const elements: HTMLElement[] = [];
+
+		for (const rect of group.rects) {
+			const pageEl = this.resolvePageElement(rect);
+			if (!pageEl) {
+				continue;
+			}
+
+			this.observeDocument(pageEl.ownerDocument);
+			const computed = getComputedStyle(pageEl);
+			if (computed.position === "static") {
+				pageEl.style.position = "relative";
+			}
+
+			const pageRect = pageEl.getBoundingClientRect();
+			const left = rect.leftRatio * pageRect.width;
+			const top = rect.topRatio * pageRect.height;
+			const width = rect.widthRatio * pageRect.width;
+			const height = rect.heightRatio * pageRect.height;
+
+			const overlay = pageEl.ownerDocument.createElement("div");
+			overlay.className = OVERLAY_CLASS;
+			overlay.style.position = "absolute";
+			overlay.style.left = `${left}px`;
+			overlay.style.top = `${top}px`;
+			overlay.style.width = `${width}px`;
+			overlay.style.height = `${height}px`;
+			overlay.style.background = group.color.css;
+			overlay.style.opacity = "0.38";
+			overlay.style.mixBlendMode = "multiply";
+			overlay.style.borderRadius = "2px";
+			overlay.style.pointerEvents = "auto";
+			overlay.style.cursor = "text";
+			overlay.style.zIndex = "4";
+			overlay.dataset.highlightId = id;
+			overlay.onpointerdown = (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+			};
+			overlay.onclick = (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				this.openEditor(id, overlay);
+			};
+			pageEl.appendChild(overlay);
+			elements.push(overlay);
+		}
+
+		group.elements = elements;
+		if (group.note.trim()) {
+			this.ensureIcon(id, group);
+		}
+
+		if (this.activeId === id) {
+			const anchor = group.icon ?? group.elements[0];
+			if (!anchor) {
+				this.closeEditor();
+				return;
+			}
+			this.activeAnchor = anchor;
+			this.repositionEditor();
+		}
+	}
+
+	private clearRenderedElements(group: OverlayGroup): void {
 		for (const element of group.elements) {
 			element.remove();
 		}
 		group.icon?.remove();
-		this.groups.delete(id);
-		if (this.activeId === id) {
-			this.closeEditor();
+		group.elements = [];
+		group.icon = undefined;
+	}
+
+	private resolvePageElement(rect: PdfSelectionOverlayRect): HTMLElement | null {
+		if (rect.pageEl.isConnected) {
+			return rect.pageEl;
+		}
+
+		if (!rect.pageNumber) {
+			return null;
+		}
+
+		const doc = rect.pageEl.ownerDocument;
+		return Array.from(doc.querySelectorAll<HTMLElement>(PAGE_SELECTOR))
+			.find((pageEl) => getPageNumber(pageEl) === rect.pageNumber) ?? null;
+	}
+
+	private observeDocument(doc: Document): void {
+		if (this.observedDocuments.has(doc) || !doc.body) {
+			return;
+		}
+
+		this.observedDocuments.add(doc);
+		const observer = new MutationObserver((mutations) => {
+			if (!mutations.some((mutation) => this.shouldRerenderForMutation(mutation))) {
+				return;
+			}
+			this.scheduleRerender();
+		});
+		observer.observe(doc.body, {
+			attributes: true,
+			attributeFilter: ["class", "style", "data-page-number"],
+			childList: true,
+			subtree: true,
+		});
+		this.observers.push(observer);
+	}
+
+	private shouldRerenderForMutation(mutation: MutationRecord): boolean {
+		const target = mutation.target;
+		const changedNodes = [...Array.from(mutation.addedNodes), ...Array.from(mutation.removedNodes)];
+		if (changedNodes.length > 0 && changedNodes.every((node) => isManagedNode(node))) {
+			return false;
+		}
+
+		if (target instanceof Element && isManagedElement(target)) {
+			return false;
+		}
+
+		if (target instanceof Element && target.closest(PAGE_SELECTOR)) {
+			return true;
+		}
+
+		return Array.from(mutation.addedNodes).some((node) => (
+			node instanceof Element &&
+			(Boolean(node.matches(PAGE_SELECTOR)) || Boolean(node.querySelector(PAGE_SELECTOR)))
+		));
+	}
+
+	private scheduleRerender(): void {
+		window.clearTimeout(this.rerenderTimer);
+		this.rerenderTimer = window.setTimeout(() => this.rerenderAll(), 80);
+	}
+
+	private rerenderAll(): void {
+		for (const [id, group] of this.groups) {
+			this.renderGroup(id, group);
 		}
 	}
 
@@ -114,7 +230,7 @@ export class HighlightOverlay {
 
 		const anchor = group.elements[0];
 		const iconEl = anchor.ownerDocument.createElement("button");
-		iconEl.className = "pdf-ollama-translator-highlight-note-icon";
+		iconEl.className = NOTE_ICON_CLASS;
 		iconEl.type = "button";
 		iconEl.style.setProperty("--pdf-ollama-translator-highlight-color", group.color.css);
 		iconEl.setAttribute("aria-label", "Highlight note");
@@ -163,7 +279,7 @@ export class HighlightOverlay {
 			return;
 		}
 
-		if (!document.body.contains(this.activeAnchor)) {
+		if (!this.activeAnchor.ownerDocument.body.contains(this.activeAnchor)) {
 			this.closeEditor();
 			return;
 		}
@@ -238,4 +354,36 @@ export class HighlightOverlay {
 
 function clamp(value: number, min: number, max: number): number {
 	return Math.min(Math.max(value, min), Math.max(min, max));
+}
+
+function isManagedNode(node: Node): boolean {
+	return node instanceof Element && isManagedElement(node);
+}
+
+function isManagedElement(element: Element): boolean {
+	return (
+		element.classList.contains(OVERLAY_CLASS) ||
+		element.classList.contains(NOTE_ICON_CLASS)
+	);
+}
+
+function getPageNumber(pageEl: HTMLElement): number | undefined {
+	const candidates = [
+		pageEl.dataset.pageNumber,
+		pageEl.getAttribute("data-page-number"),
+		pageEl.getAttribute("aria-label"),
+	].filter((value): value is string => Boolean(value));
+
+	for (const candidate of candidates) {
+		const match = candidate.match(/\d+/);
+		if (!match) {
+			continue;
+		}
+		const page = Number.parseInt(match[0], 10);
+		if (Number.isFinite(page) && page > 0) {
+			return page;
+		}
+	}
+
+	return undefined;
 }
