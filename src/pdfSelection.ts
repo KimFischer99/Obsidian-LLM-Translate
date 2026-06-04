@@ -28,6 +28,8 @@ interface ActiveSelectionContainer {
 	file?: TFile | null;
 }
 
+const PDF_PAGE_SELECTOR = "[data-page-number], .page, .pdf-page";
+
 const PDF_CONTAINER_SELECTORS = [
 	".pdf-viewer",
 	".pdfViewer",
@@ -212,7 +214,7 @@ export class PdfSelectionReader {
 		const range = selection.getRangeAt(0);
 		const ancestor = range.commonAncestorContainer;
 		const element = ancestor instanceof Element ? ancestor : ancestor.parentElement;
-		const pageEl = element?.closest<HTMLElement>("[data-page-number], .page, .pdf-page");
+		const pageEl = element?.closest<HTMLElement>(PDF_PAGE_SELECTOR);
 		if (!pageEl) {
 			return undefined;
 		}
@@ -252,25 +254,26 @@ export class PdfSelectionReader {
 		const range = selection.getRangeAt(0);
 		const ancestor = range.commonAncestorContainer;
 		const element = ancestor instanceof Element ? ancestor : ancestor.parentElement;
-		const pageEl = element?.closest<HTMLElement>("[data-page-number], .page, .pdf-page");
-		if (!pageEl) {
-			return undefined;
-		}
-
-		const pageRect = pageEl.getBoundingClientRect();
-		if (pageRect.width <= 0 || pageRect.height <= 0) {
-			return undefined;
-		}
-
-		const pageNumber = getPageNumber(pageEl);
+		const fallbackPageEl = element?.closest<HTMLElement>(PDF_PAGE_SELECTOR);
+		const ownerDocument = element?.ownerDocument ?? document;
 		const rects = Array.from(range.getClientRects())
 			.filter((rect) => rect.width > 0 && rect.height > 0)
 			.map((rect) => {
+				const pageEl = getPageElementFromRect(rect, ownerDocument) ?? fallbackPageEl;
+				if (!pageEl) {
+					return null;
+				}
+
+				const pageRect = pageEl.getBoundingClientRect();
+				if (pageRect.width <= 0 || pageRect.height <= 0) {
+					return null;
+				}
+
 				const left = rect.left - pageRect.left;
 				const top = rect.top - pageRect.top;
 				return {
 					pageEl,
-					pageNumber,
+					pageNumber: getPageNumber(pageEl),
 					left,
 					top,
 					width: rect.width,
@@ -280,10 +283,28 @@ export class PdfSelectionReader {
 					widthRatio: rect.width / pageRect.width,
 					heightRatio: rect.height / pageRect.height,
 				};
-			});
+			})
+			.filter((rect): rect is NonNullable<typeof rect> => Boolean(rect));
 
 		return rects.length > 0 ? rects : undefined;
 	}
+}
+
+function getPageElementFromRect(rect: DOMRect, ownerDocument: Document): HTMLElement | null {
+	const x = rect.left + rect.width / 2;
+	const y = rect.top + rect.height / 2;
+	const elements = typeof ownerDocument.elementsFromPoint === "function"
+		? ownerDocument.elementsFromPoint(x, y)
+		: [];
+
+	for (const element of elements) {
+		const pageEl = element.closest<HTMLElement>(PDF_PAGE_SELECTOR);
+		if (pageEl) {
+			return pageEl;
+		}
+	}
+
+	return ownerDocument.elementFromPoint(x, y)?.closest<HTMLElement>(PDF_PAGE_SELECTOR) ?? null;
 }
 
 function getPageNumber(pageEl: HTMLElement): number | undefined {

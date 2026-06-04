@@ -146,6 +146,25 @@
 	pointer-events: none;
 }
 
+.pdf-ollama-translator-highlight-host {
+	position: relative;
+}
+
+.pdf-ollama-translator-highlight-layer {
+	position: absolute;
+	inset: 0;
+	z-index: 5;
+	pointer-events: none;
+}
+
+.pdf-ollama-translator-highlight-overlay {
+	position: absolute;
+	border-radius: 2px;
+	mix-blend-mode: multiply;
+	pointer-events: auto;
+	cursor: text;
+}
+
 .pdf-ollama-translator-highlight-note-editor {
 	position: fixed;
 	z-index: calc(var(--layer-popover) + 2);
@@ -176,8 +195,6 @@
 
 .pdf-ollama-translator-highlight-note-icon {
 	position: absolute;
-	top: -12px;
-	right: -14px;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;

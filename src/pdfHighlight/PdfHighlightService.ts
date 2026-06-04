@@ -8,9 +8,6 @@ import { PdfTextLocator } from "./PdfTextLocator";
 import { normalizeSelectionTextForPdf } from "./normalize";
 import type { HighlightColorConfig, LocatedPdfHighlight } from "./types";
 
-const PERSIST_DELAY_MS = 5000;
-const INACTIVE_RETRY_MS = 15000;
-
 interface HighlightEntry {
 	key: string;
 	location: LocatedPdfHighlight;
@@ -18,14 +15,14 @@ interface HighlightEntry {
 	selection: PdfTextSelection;
 	note: string;
 	persisted: boolean;
-	timer: number | undefined;
 }
 
 export class PdfHighlightService {
 	private locator: PdfTextLocator;
 	private writer: PdfAnnotationWriter;
-	private overlay = new HighlightOverlay();
+	private overlay: HighlightOverlay;
 	private entries = new Map<string, HighlightEntry>();
+	private pendingRemovals = new Map<string, HighlightEntry>();
 	private lastEntryKey = "";
 
 	constructor(
@@ -34,6 +31,7 @@ export class PdfHighlightService {
 	) {
 		this.locator = new PdfTextLocator(app, debug);
 		this.writer = new PdfAnnotationWriter(app);
+		this.overlay = new HighlightOverlay(app);
 	}
 
 	async toggleSelectionHighlight(selection: PdfTextSelection, colorId: HighlightColorId): Promise<void> {
@@ -67,12 +65,11 @@ export class PdfHighlightService {
 			selection,
 			note: "",
 			persisted: false,
-			timer: undefined,
 		};
 		this.entries.set(key, entry);
+		this.pendingRemovals.delete(key);
 		this.lastEntryKey = key;
 		this.overlay.render(key, selection, color, entry.note, (note) => this.updateNote(key, note));
-		this.schedulePersist(entry);
 	}
 
 	canUndoSelection(selection: PdfTextSelection | null): boolean {
@@ -97,9 +94,14 @@ export class PdfHighlightService {
 
 	flushPendingForInactiveViews(): void {
 		for (const entry of this.entries.values()) {
-			if (!entry.persisted && !this.isFileActive(entry.location.file.path)) {
-				window.clearTimeout(entry.timer);
+			if (!entry.persisted && !this.isFileOpen(entry.location.file.path)) {
 				void this.persist(entry);
+			}
+		}
+
+		for (const [key, entry] of this.pendingRemovals) {
+			if (!this.isFileOpen(entry.location.file.path)) {
+				void this.removePersisted(key, entry);
 			}
 		}
 	}
@@ -107,14 +109,24 @@ export class PdfHighlightService {
 	flushAllPending(): void {
 		for (const entry of this.entries.values()) {
 			if (!entry.persisted) {
-				window.clearTimeout(entry.timer);
 				void this.persist(entry);
 			}
 		}
+
+		for (const [key, entry] of this.pendingRemovals) {
+			void this.removePersisted(key, entry);
+		}
+	}
+
+	refreshOverlays(): void {
+		this.overlay.refresh();
+	}
+
+	destroy(): void {
+		this.overlay.destroy();
 	}
 
 	private removeEntry(entry: HighlightEntry, persistRemoval: boolean): void {
-		window.clearTimeout(entry.timer);
 		this.overlay.remove(entry.key);
 		this.entries.delete(entry.key);
 		if (this.lastEntryKey === entry.key) {
@@ -122,70 +134,30 @@ export class PdfHighlightService {
 		}
 
 		if (entry.persisted && persistRemoval) {
-			this.scheduleRemoval({ ...entry, timer: undefined });
+			this.pendingRemovals.set(entry.key, entry);
 		}
-	}
-
-	private schedulePersist(entry: HighlightEntry): void {
-		window.clearTimeout(entry.timer);
-		entry.timer = window.setTimeout(() => {
-			if (this.isFileActive(entry.location.file.path)) {
-				this.scheduleInactiveRetry(entry);
-				return;
-			}
-			void this.persist(entry);
-		}, PERSIST_DELAY_MS);
-	}
-
-	private scheduleRemoval(entry: HighlightEntry): void {
-		window.clearTimeout(entry.timer);
-		entry.timer = window.setTimeout(() => {
-			if (this.isFileActive(entry.location.file.path)) {
-				this.scheduleRemovalRetry(entry);
-				return;
-			}
-			void this.removePersisted(entry);
-		}, PERSIST_DELAY_MS);
-	}
-
-	private scheduleInactiveRetry(entry: HighlightEntry): void {
-		window.clearTimeout(entry.timer);
-		entry.timer = window.setTimeout(() => {
-			if (this.isFileActive(entry.location.file.path)) {
-				this.scheduleInactiveRetry(entry);
-				return;
-			}
-			void this.persist(entry);
-		}, INACTIVE_RETRY_MS);
-	}
-
-	private scheduleRemovalRetry(entry: HighlightEntry): void {
-		window.clearTimeout(entry.timer);
-		entry.timer = window.setTimeout(() => {
-			if (this.isFileActive(entry.location.file.path)) {
-				this.scheduleRemovalRetry(entry);
-				return;
-			}
-			void this.removePersisted(entry);
-		}, INACTIVE_RETRY_MS);
 	}
 
 	private async persist(entry: HighlightEntry): Promise<void> {
 		try {
-			const result = await this.writer.applyHighlight(entry.location, entry.color, entry.note);
+			await this.writer.applyHighlight(entry.location, entry.color, entry.note);
 			const current = this.entries.get(entry.key);
 			if (current) {
 				current.persisted = true;
-				current.timer = undefined;
+				if (!this.isFileOpen(current.location.file.path)) {
+					this.overlay.remove(current.key);
+					this.entries.delete(current.key);
+				}
 			}
 		} catch (error) {
 			this.debug("PDF highlight persistence failed.", error);
 		}
 	}
 
-	private async removePersisted(entry: HighlightEntry): Promise<void> {
+	private async removePersisted(key: string, entry: HighlightEntry): Promise<void> {
 		try {
 			await this.writer.removeHighlight(entry.location);
+			this.pendingRemovals.delete(key);
 		} catch (error) {
 			this.debug("PDF highlight removal failed.", error);
 		}
@@ -199,12 +171,19 @@ export class PdfHighlightService {
 		entry.note = note;
 		entry.persisted = false;
 		this.overlay.updateNote(key, note);
-		this.schedulePersist(entry);
 	}
 
-	private isFileActive(path: string): boolean {
-		const view = this.app.workspace.activeLeaf?.view as { file?: { path?: string } } | undefined;
-		return view?.file?.path === path;
+	private isFileOpen(path: string): boolean {
+		const leaves: Array<{ view?: { file?: { path?: string } | null } }> = [];
+		const workspace = this.app.workspace as unknown as {
+			iterateAllLeaves?: (callback: (leaf: { view?: { file?: { path?: string } | null } }) => void) => void;
+		};
+		workspace.iterateAllLeaves?.((leaf) => leaves.push(leaf));
+		if (leaves.length === 0) {
+			leaves.push(...this.app.workspace.getLeavesOfType("pdf") as unknown as Array<{ view?: { file?: { path?: string } | null } }>);
+		}
+
+		return leaves.some((leaf) => leaf.view?.file?.path === path);
 	}
 }
 

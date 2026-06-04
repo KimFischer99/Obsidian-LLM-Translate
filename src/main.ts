@@ -116,6 +116,7 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 		this.cancelActiveRequest();
 		window.clearTimeout(this.selectionTimer);
 		this.highlightService?.flushAllPending();
+		this.highlightService?.destroy();
 		this.popup?.destroy();
 	}
 
@@ -283,6 +284,13 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 		this.registerEvent(
 			this.app.workspace.on("active-leaf-change", () => {
 				this.highlightService.flushPendingForInactiveViews();
+				this.highlightService.refreshOverlays();
+			}),
+		);
+		this.registerEvent(
+			this.app.workspace.on("layout-change", () => {
+				this.highlightService.flushPendingForInactiveViews();
+				this.highlightService.refreshOverlays();
 			}),
 		);
 	}
