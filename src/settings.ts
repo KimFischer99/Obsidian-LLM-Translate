@@ -32,7 +32,7 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 		containerEl.empty();
 		containerEl.addClass("pdf-ollama-translator-settings");
 
-		containerEl.createEl("h2", { text: "LLM Translator" });
+		new Setting(containerEl).setName("LLM Translator").setHeading();
 
 		this.addSection(t("settings.section.general"));
 		new Setting(containerEl)
@@ -414,9 +414,11 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 		return button
 			.setButtonText(t("settings.test"))
 			.onClick(async () => {
-				button.setDisabled(true).setButtonText(t("settings.testing"));
+				button.buttonEl.disabled = true;
+				button.setButtonText(t("settings.testing"));
 				const result = await this.plugin.testConnection();
-				button.setDisabled(false).setButtonText(t("settings.test"));
+				button.buttonEl.disabled = false;
+				button.setButtonText(t("settings.test"));
 				new Notice(result.message);
 			});
 	}
@@ -440,7 +442,6 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 	}
 
 	private addSection(title: string): void {
-		const sectionEl = this.containerEl.createDiv({ cls: "pdf-ollama-translator-settings__section" });
-		sectionEl.createEl("h3", { text: title });
+		new Setting(this.containerEl).setName(title).setHeading();
 	}
 }

@@ -102,7 +102,7 @@ export class PdfSelectionReader {
 	}
 
 	private getActivePdfContainer(): ActiveSelectionContainer | null {
-		const activeLeaf = this.app.workspace.activeLeaf;
+		const activeLeaf = this.app.workspace.getLeaf();
 		const view = activeLeaf?.view as PdfLikeView | undefined;
 		if (!view?.containerEl || !this.isPdfView(view)) {
 			return null;
@@ -130,7 +130,7 @@ export class PdfSelectionReader {
 	}
 
 	private getActiveMarkdownContainer(): ActiveSelectionContainer | null {
-		const activeLeaf = this.app.workspace.activeLeaf;
+		const activeLeaf = this.app.workspace.getLeaf();
 		const view = activeLeaf?.view as MarkdownLikeView | undefined;
 		if (!view?.containerEl || view.getViewType() !== "markdown") {
 			return null;
@@ -158,7 +158,7 @@ export class PdfSelectionReader {
 	}
 
 	private getSelectionContext(container: HTMLElement): SelectionWithContext | null {
-		const documentSelection = document.getSelection();
+		const documentSelection = activeDocument.getSelection();
 		if (
 			documentSelection &&
 			documentSelection.rangeCount > 0 &&
@@ -213,7 +213,7 @@ export class PdfSelectionReader {
 
 		const range = selection.getRangeAt(0);
 		const ancestor = range.commonAncestorContainer;
-		const element = ancestor instanceof Element ? ancestor : ancestor.parentElement;
+		const element = ancestor.instanceOf(Element) ? ancestor : ancestor.parentElement;
 		const pageEl = element?.closest<HTMLElement>(PDF_PAGE_SELECTOR);
 		if (!pageEl) {
 			return undefined;
@@ -253,9 +253,9 @@ export class PdfSelectionReader {
 
 		const range = selection.getRangeAt(0);
 		const ancestor = range.commonAncestorContainer;
-		const element = ancestor instanceof Element ? ancestor : ancestor.parentElement;
+		const element = ancestor.instanceOf(Element) ? ancestor : ancestor.parentElement;
 		const fallbackPageEl = element?.closest<HTMLElement>(PDF_PAGE_SELECTOR);
-		const ownerDocument = element?.ownerDocument ?? document;
+		const ownerDocument = element?.ownerDocument ?? activeDocument;
 		const rects = Array.from(range.getClientRects())
 			.filter((rect) => rect.width > 0 && rect.height > 0)
 			.map((rect) => {

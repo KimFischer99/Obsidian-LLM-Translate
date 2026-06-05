@@ -228,10 +228,9 @@ export class PdfOllamaTranslatorSidebarView extends ItemView {
 			});
 			button.style.setProperty("--pdf-ollama-translator-highlight-color", color.css);
 			button.style.backgroundColor = color.css;
-			button.style.color = "transparent";
 			button.toggleClass("is-active", this.plugin.settings.defaultHighlightColor === colorId);
 			button.onClickEvent(async () => {
-				await this.plugin.updateSettings({ defaultHighlightColor: colorId as HighlightColorId });
+				await this.plugin.updateSettings({ defaultHighlightColor: colorId });
 				this.render();
 			});
 		}

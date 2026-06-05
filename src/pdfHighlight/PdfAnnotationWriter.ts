@@ -1,4 +1,4 @@
-import type { App, TFile } from "obsidian";
+import type { App } from "obsidian";
 import {
 	PDFArray,
 	PDFDict,
@@ -100,7 +100,7 @@ export class PdfAnnotationWriter {
 		const page = pdfDoc.getPage(quad.pageIndex);
 		let annots = page.node.lookupMaybe(PDFName.of("Annots"), PDFArray);
 		if (!annots) {
-			annots = pdfDoc.context.obj([]) as PDFArray;
+			annots = pdfDoc.context.obj([]);
 			page.node.set(PDFName.of("Annots"), annots);
 		}
 

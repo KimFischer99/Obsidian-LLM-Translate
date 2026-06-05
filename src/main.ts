@@ -105,7 +105,7 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 		});
 		this.addCommand({
 			id: "open-pdf-ollama-translator-sidebar",
-			name: "Open LLM Translator sidebar",
+			name: "Open sidebar",
 			callback: () => void this.activateSidebarView(),
 		});
 		this.registerSelectionEvents();
@@ -267,17 +267,16 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 			return;
 		}
 		await leaf.setViewState({ type: PDF_OLLAMA_TRANSLATOR_VIEW_TYPE, active: true });
-		this.app.workspace.revealLeaf(leaf);
 	}
 
 	private registerSelectionEvents(): void {
-		this.registerDomEvent(document, "pointerdown", (event) => this.handleDocumentPointerDown(event), true);
-		this.registerDomEvent(document, "selectionchange", () => this.handleSelectionChange());
-		this.registerDomEvent(document, "mouseup", () => this.finishPointerSelection());
-		this.registerDomEvent(document, "keydown", (event) => this.handleDocumentKeyDown(event));
-		this.registerDomEvent(document, "keyup", () => this.scheduleSelectionTranslation());
+		this.registerDomEvent(activeDocument, "pointerdown", (event) => this.handleDocumentPointerDown(event), true);
+		this.registerDomEvent(activeDocument, "selectionchange", () => this.handleSelectionChange());
+		this.registerDomEvent(activeDocument, "mouseup", () => this.finishPointerSelection());
+		this.registerDomEvent(activeDocument, "keydown", (event) => this.handleDocumentKeyDown(event));
+		this.registerDomEvent(activeDocument, "keyup", () => this.scheduleSelectionTranslation());
 		this.registerDomEvent(window, "resize", () => this.popup.reposition());
-		this.registerDomEvent(document, "scroll", () => this.popup.reposition(), true);
+		this.registerDomEvent(activeDocument, "scroll", () => this.popup.reposition(), true);
 	}
 
 	private registerWorkspaceEvents(): void {
@@ -561,8 +560,8 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 	}
 
 	private async loadSettings(): Promise<void> {
-		const loaded = (await this.loadData()) ?? {};
-		const safe = loaded as Partial<PdfOllamaTranslatorSettings> & { translationProvider?: string };
+		const loaded: Record<string, unknown> = (await this.loadData()) ?? {};
+		const safe = loaded as unknown as Partial<PdfOllamaTranslatorSettings> & { translationProvider?: string };
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, safe, {
 			cloudApiBaseUrl: safe.cloudApiBaseUrl ?? DEFAULT_SETTINGS.cloudApiBaseUrl,
 			cloudApiKey: safe.cloudApiKey ?? DEFAULT_SETTINGS.cloudApiKey,

@@ -41,7 +41,7 @@ export class PdfTextLocator {
 			data: data.slice(0),
 			useWorkerFetch: false,
 			isEvalSupported: false,
-		} as any);
+		} as Record<string, unknown>);
 		const pdfDoc = await documentTask.promise;
 
 		try {

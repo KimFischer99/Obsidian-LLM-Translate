@@ -55,7 +55,7 @@ export class TranslationPopup {
 
 	constructor(options: PopupOptions) {
 		this.options = options;
-		this.rootEl = document.body.createDiv({ cls: "pdf-ollama-translator-popup" });
+		this.rootEl = activeDocument.body.createDiv({ cls: "pdf-ollama-translator-popup" });
 		this.rootEl.hide();
 
 		const headerEl = this.rootEl.createDiv({ cls: "pdf-ollama-translator-popup__header" });

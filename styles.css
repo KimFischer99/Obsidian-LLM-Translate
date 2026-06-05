@@ -137,9 +137,7 @@
 	color: var(--text-error);
 }
 
-.annotationLayer.annotationLayer :is(.highlightAnnotation, .popupAnnotation) :is(.popup, .popupWrapper, .annotationCommentButton, .commentButton),
-.annotationLayer.annotationLayer .popupAnnotation,
-.annotationLayer.annotationLayer .popup,
+.annotationLayer.annotationLayer :is(.highlightAnnotation, .popupAnnotation) :is(.annotationCommentButton, .commentButton),
 .annotationLayer.annotationLayer .annotationCommentButton {
 	display: none;
 	visibility: hidden;
@@ -164,6 +162,7 @@
 	mix-blend-mode: multiply;
 	pointer-events: auto;
 	cursor: text;
+	opacity: 0.38;
 }
 
 .pdf-ollama-translator-highlight-note-editor {

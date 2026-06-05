@@ -88,6 +88,7 @@ export class TranslatorService {
 
 		const startedAt = performance.now();
 		const timeout = this.withTimeout(request.signal, settings.requestTimeoutMs);
+		// eslint-disable-next-line obsidianmd/no-fetch -- requires AbortSignal for timeout
 		const response = await fetch(this.getChatUrl(settings.ollamaBaseUrl), {
 				method: "POST",
 				headers: {
@@ -141,6 +142,7 @@ export class TranslatorService {
 
 		const startedAt = performance.now();
 		const timeout = this.withTimeout(request.signal, settings.requestTimeoutMs);
+		// eslint-disable-next-line obsidianmd/no-fetch -- requires AbortSignal for timeout
 		const response = await fetch(this.getCloudChatUrl(settings.cloudApiBaseUrl), {
 				method: "POST",
 				headers: {
@@ -194,6 +196,7 @@ export class TranslatorService {
 		url.searchParams.set("q", request.text);
 
 		const timeout = this.withTimeout(request.signal, settings.requestTimeoutMs);
+		// eslint-disable-next-line obsidianmd/no-fetch -- requires AbortSignal for timeout
 		const response = await fetch(url.toString(), { method: "GET", signal: timeout.signal })
 			.finally(timeout.cleanup);
 		if (!response.ok) {
@@ -221,6 +224,7 @@ export class TranslatorService {
 		const url = `https://api-edge.cognitive.microsofttranslator.com/translate?api-version=3.0${source}&to=${encodeURIComponent(target)}`;
 		const token = await this.getBingAuthToken(settings.requestTimeoutMs, request.signal);
 		const timeout = this.withTimeout(request.signal, settings.requestTimeoutMs);
+		// eslint-disable-next-line obsidianmd/no-fetch -- requires AbortSignal for timeout
 		const response = await fetch(url, {
 				method: "POST",
 				headers: {
@@ -278,6 +282,7 @@ export class TranslatorService {
 
 		try {
 			const timeout = this.withTimeout(undefined, settings.requestTimeoutMs);
+			// eslint-disable-next-line obsidianmd/no-fetch -- requires AbortSignal for timeout
 			const response = await fetch(this.getTagsUrl(settings.ollamaBaseUrl), {
 					method: "GET",
 					signal: timeout.signal,
@@ -307,6 +312,7 @@ export class TranslatorService {
 	async listModels(): Promise<string[]> {
 		const settings = this.getSettings();
 		const timeout = this.withTimeout(undefined, settings.requestTimeoutMs);
+		// eslint-disable-next-line obsidianmd/no-fetch -- requires AbortSignal for timeout
 		const response = await fetch(this.getTagsUrl(settings.ollamaBaseUrl), {
 				method: "GET",
 				signal: timeout.signal,
@@ -352,6 +358,7 @@ export class TranslatorService {
 
 	private async getBingAuthToken(timeoutMs: number, signal: AbortSignal | undefined): Promise<string> {
 		const timeout = this.withTimeout(signal, timeoutMs);
+		// eslint-disable-next-line obsidianmd/no-fetch -- requires AbortSignal for timeout
 		const response = await fetch("https://edge.microsoft.com/translate/auth", {
 				method: "GET",
 				headers: {
@@ -482,12 +489,13 @@ function parseBingResponse(data: unknown): string {
 	if (!Array.isArray(data)) {
 		return "";
 	}
-	return data
+	const items = data as Array<{ translations?: Array<{ text?: string }> }>;
+	return items
 		.flatMap((item) => {
-			const translations = (item as { translations?: Array<{ text?: string }> }).translations ?? [];
+			const translations = item.translations ?? [];
 			return translations.map((translation) => translation.text ?? "");
 		})
-		.filter(Boolean)
+		.filter((value): value is string => Boolean(value))
 		.join("\n")
 		.trim();
 }

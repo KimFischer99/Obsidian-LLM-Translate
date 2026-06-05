@@ -134,8 +134,8 @@ export class HighlightOverlay {
 		this.editorEl = undefined;
 		this.textareaEl = undefined;
 		if (this.listenersRegistered) {
-			document.removeEventListener("pointerdown", this.handleDocumentPointerDown, true);
-			document.removeEventListener("scroll", this.handleViewportChange, true);
+			activeDocument.removeEventListener("pointerdown", this.handleDocumentPointerDown, true);
+			activeDocument.removeEventListener("scroll", this.handleViewportChange, true);
 			window.removeEventListener("resize", this.handleViewportChange);
 		}
 		this.listenersRegistered = false;
@@ -174,18 +174,11 @@ export class HighlightOverlay {
 
 			const overlay = layer.ownerDocument.createElement("div");
 			overlay.className = OVERLAY_CLASS;
-			overlay.style.position = "absolute";
 			overlay.style.left = `${left}px`;
 			overlay.style.top = `${top}px`;
 			overlay.style.width = `${width}px`;
 			overlay.style.height = `${height}px`;
 			overlay.style.background = group.color.css;
-			overlay.style.opacity = "0.38";
-			overlay.style.mixBlendMode = "multiply";
-			overlay.style.borderRadius = "2px";
-			overlay.style.pointerEvents = "auto";
-			overlay.style.cursor = "text";
-			overlay.style.zIndex = "1";
 			overlay.dataset.highlightId = id;
 			overlay.onpointerdown = (event) => {
 				event.preventDefault();
@@ -269,7 +262,7 @@ export class HighlightOverlay {
 			}
 		}
 
-		const activeView = this.app.workspace.activeLeaf?.view as PdfViewLike | undefined;
+		const activeView = this.app.workspace.getLeaf()?.view as PdfViewLike | undefined;
 		if (activeView?.containerEl && (!filePath || activeView.file?.path === filePath)) {
 			return this.hostFromViewer(activeView.containerEl);
 		}
@@ -304,10 +297,6 @@ export class HighlightOverlay {
 
 	private ensureLayer(host: HTMLElement): HTMLElement {
 		host.classList.add(HOST_CLASS);
-		const computed = getComputedStyle(host);
-		if (computed.position === "static") {
-			host.style.position = "relative";
-		}
 
 		const existing = this.layers.get(host);
 		if (existing?.isConnected) {
@@ -315,7 +304,7 @@ export class HighlightOverlay {
 		}
 
 		const layer = Array.from(host.children)
-			.find((child): child is HTMLElement => child instanceof HTMLElement && child.classList.contains(LAYER_CLASS));
+			.find((child): child is HTMLElement => child.instanceOf(HTMLElement) && child.classList.contains(LAYER_CLASS));
 		if (layer) {
 			this.layers.set(host, layer);
 			return layer;
@@ -323,10 +312,6 @@ export class HighlightOverlay {
 
 		const next = host.ownerDocument.createElement("div");
 		next.className = LAYER_CLASS;
-		next.style.position = "absolute";
-		next.style.inset = "0";
-		next.style.pointerEvents = "none";
-		next.style.zIndex = "1000";
 		host.appendChild(next);
 		this.layers.set(host, next);
 		return next;
@@ -360,19 +345,19 @@ export class HighlightOverlay {
 			return false;
 		}
 
-		if (target instanceof Element && isManagedElement(target)) {
+		if (target.instanceOf(Element) && isManagedElement(target)) {
 			return false;
 		}
 
 		if (
-			target instanceof Element &&
+			target.instanceOf(Element) &&
 			(target.closest(PAGE_SELECTOR) || target.closest(PDF_VIEWER_SELECTOR) || target.closest(".workspace-leaf-content"))
 		) {
 			return true;
 		}
 
 		return changedNodes.some((node) => (
-			node instanceof Element &&
+			node.instanceOf(Element) &&
 			(
 				node.matches(PAGE_SELECTOR) ||
 				node.matches(PDF_VIEWER_SELECTOR) ||
@@ -386,7 +371,7 @@ export class HighlightOverlay {
 		if (this.renderFrame !== undefined) {
 			return;
 		}
-		this.renderFrame = requestAnimationFrame(() => {
+		this.renderFrame = window.requestAnimationFrame(() => {
 			this.renderFrame = undefined;
 			this.rerenderAll();
 		});
@@ -426,8 +411,6 @@ export class HighlightOverlay {
 		iconEl.type = "button";
 		iconEl.style.left = `${anchorRect.right - layerRect.left - 4}px`;
 		iconEl.style.top = `${anchorRect.top - layerRect.top - 12}px`;
-		iconEl.style.right = "auto";
-		iconEl.style.zIndex = "2";
 		iconEl.style.setProperty("--pdf-ollama-translator-highlight-color", group.color.css);
 		iconEl.setAttribute("aria-label", "Highlight note");
 		setIcon(iconEl, "message-square");
@@ -460,7 +443,7 @@ export class HighlightOverlay {
 
 		this.textareaEl.value = group.note;
 		this.textareaEl.style.borderColor = group.color.css;
-		this.editorEl.style.display = "block";
+		this.editorEl.show();
 		this.repositionEditor();
 		this.textareaEl.focus();
 	}
@@ -500,7 +483,7 @@ export class HighlightOverlay {
 			return;
 		}
 
-		this.editorEl = document.body.createDiv({ cls: "pdf-ollama-translator-highlight-note-editor" });
+		this.editorEl = activeDocument.body.createDiv({ cls: "pdf-ollama-translator-highlight-note-editor" });
 		this.editorEl.hide();
 		this.textareaEl = this.editorEl.createEl("textarea", {
 			cls: "pdf-ollama-translator-highlight-note-editor__textarea",
@@ -527,8 +510,8 @@ export class HighlightOverlay {
 			return;
 		}
 		this.listenersRegistered = true;
-		document.addEventListener("pointerdown", this.handleDocumentPointerDown, true);
-		document.addEventListener("scroll", this.handleViewportChange, true);
+		activeDocument.addEventListener("pointerdown", this.handleDocumentPointerDown, true);
+		activeDocument.addEventListener("scroll", this.handleViewportChange, true);
 		window.addEventListener("resize", this.handleViewportChange);
 	}
 
@@ -543,9 +526,10 @@ export class HighlightOverlay {
 		}
 
 		const target = event.target;
+		const targetNode = target instanceof Node ? target : null;
 		if (
-			target instanceof Node &&
-			(this.editorEl.contains(target) || this.activeAnchor?.contains(target))
+			targetNode &&
+			(this.editorEl.contains(targetNode) || this.activeAnchor?.contains(targetNode))
 		) {
 			return;
 		}
@@ -559,7 +543,7 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 function isManagedNode(node: Node): boolean {
-	return node instanceof Element && isManagedElement(node);
+	return node.instanceOf(Element) && isManagedElement(node);
 }
 
 function isManagedElement(element: Element): boolean {
