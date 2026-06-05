@@ -102,7 +102,7 @@ export class PdfSelectionReader {
 	}
 
 	private getActivePdfContainer(): ActiveSelectionContainer | null {
-		const activeLeaf = this.app.workspace.getLeaf();
+		const activeLeaf = this.app.workspace.activeLeaf;
 		const view = activeLeaf?.view as PdfLikeView | undefined;
 		if (!view?.containerEl || !this.isPdfView(view)) {
 			return null;
@@ -130,7 +130,7 @@ export class PdfSelectionReader {
 	}
 
 	private getActiveMarkdownContainer(): ActiveSelectionContainer | null {
-		const activeLeaf = this.app.workspace.getLeaf();
+		const activeLeaf = this.app.workspace.activeLeaf;
 		const view = activeLeaf?.view as MarkdownLikeView | undefined;
 		if (!view?.containerEl || view.getViewType() !== "markdown") {
 			return null;

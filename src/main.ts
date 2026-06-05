@@ -560,7 +560,7 @@ export default class PdfOllamaTranslatorPlugin extends Plugin {
 	}
 
 	private async loadSettings(): Promise<void> {
-		const loaded: Record<string, unknown> = (await this.loadData()) ?? {};
+		const loaded = (await this.loadData()) as Record<string, unknown> | undefined ?? {};
 		const safe = loaded as unknown as Partial<PdfOllamaTranslatorSettings> & { translationProvider?: string };
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, safe, {
 			cloudApiBaseUrl: safe.cloudApiBaseUrl ?? DEFAULT_SETTINGS.cloudApiBaseUrl,

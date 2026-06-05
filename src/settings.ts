@@ -32,8 +32,6 @@ export class PdfOllamaTranslatorSettingTab extends PluginSettingTab {
 		containerEl.empty();
 		containerEl.addClass("pdf-ollama-translator-settings");
 
-		new Setting(containerEl).setName("LLM Translator").setHeading();
-
 		this.addSection(t("settings.section.general"));
 		new Setting(containerEl)
 			.setName(t("settings.translationScope"))

@@ -6,6 +6,7 @@ import type {
 	TranslationLanguage,
 	TranslationProviderId,
 } from "./types";
+import { requestUrl } from "obsidian";
 import { t } from "./i18n";
 
 interface OllamaChatResponse {
@@ -32,11 +33,6 @@ interface CloudChatResponse {
 	error?: {
 		message?: string;
 	};
-}
-
-interface TimeoutSignal {
-	signal: AbortSignal;
-	cleanup: () => void;
 }
 
 export const DEFAULT_TRANSLATION_PROMPT =
@@ -87,31 +83,28 @@ export class TranslatorService {
 		}
 
 		const startedAt = performance.now();
-		const timeout = this.withTimeout(request.signal, settings.requestTimeoutMs);
-		// eslint-disable-next-line obsidianmd/no-fetch -- requires AbortSignal for timeout
-		const response = await fetch(this.getChatUrl(settings.ollamaBaseUrl), {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					model,
-					stream: false,
-					options: buildOllamaOptions(settings),
-					messages: [
-						{ role: "system", content: this.getSystemPrompt(settings, request) },
-						{ role: "user", content: request.text },
-					],
-				}),
-				signal: timeout.signal,
-			})
-			.finally(timeout.cleanup);
+		const response = await this.requestUrlWithTimeout({
+			url: this.getChatUrl(settings.ollamaBaseUrl),
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				model,
+				stream: false,
+				options: buildOllamaOptions(settings),
+				messages: [
+					{ role: "system", content: this.getSystemPrompt(settings, request) },
+					{ role: "user", content: request.text },
+				],
+			}),
+		}, settings.requestTimeoutMs);
 
-			if (!response.ok) {
-				throw new Error(await this.toHttpError(response, "Ollama"));
-			}
+		if (response.status < 200 || response.status >= 300) {
+			throw new Error(this.toHttpError(response, "Ollama"));
+		}
 
-		const data = (await response.json()) as OllamaChatResponse;
+		const data = response.json as OllamaChatResponse;
 		if (data.error) {
 			throw new Error(data.error);
 		}
@@ -141,31 +134,28 @@ export class TranslatorService {
 		}
 
 		const startedAt = performance.now();
-		const timeout = this.withTimeout(request.signal, settings.requestTimeoutMs);
-		// eslint-disable-next-line obsidianmd/no-fetch -- requires AbortSignal for timeout
-		const response = await fetch(this.getCloudChatUrl(settings.cloudApiBaseUrl), {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${apiKey}`,
-				},
-				body: JSON.stringify({
-					model,
-					stream: false,
-					messages: [
-						{ role: "system", content: this.getSystemPrompt(settings, request) },
-						{ role: "user", content: request.text },
-					],
-				}),
-				signal: timeout.signal,
-			})
-			.finally(timeout.cleanup);
+		const response = await this.requestUrlWithTimeout({
+			url: this.getCloudChatUrl(settings.cloudApiBaseUrl),
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${apiKey}`,
+			},
+			contentType: "application/json",
+			body: JSON.stringify({
+				model,
+				stream: false,
+				messages: [
+					{ role: "system", content: this.getSystemPrompt(settings, request) },
+					{ role: "user", content: request.text },
+				],
+			}),
+		}, settings.requestTimeoutMs);
 
-		if (!response.ok) {
-			throw new Error(await this.toHttpError(response, "Cloud API"));
+		if (response.status < 200 || response.status >= 300) {
+			throw new Error(this.toHttpError(response, "Cloud API"));
 		}
 
-		const data = (await response.json()) as CloudChatResponse;
+		const data = response.json as CloudChatResponse;
 		if (data.error) {
 			throw new Error(data.error.message ?? t("error.cloudApiError"));
 		}
@@ -195,16 +185,12 @@ export class TranslatorService {
 		url.searchParams.set("dt", "t");
 		url.searchParams.set("q", request.text);
 
-		const timeout = this.withTimeout(request.signal, settings.requestTimeoutMs);
-		// eslint-disable-next-line obsidianmd/no-fetch -- requires AbortSignal for timeout
-		const response = await fetch(url.toString(), { method: "GET", signal: timeout.signal })
-			.finally(timeout.cleanup);
-		if (!response.ok) {
-			throw new Error(await this.toHttpError(response, "Google Translate"));
+		const response = await this.requestUrlWithTimeout({ url: url.toString() }, settings.requestTimeoutMs);
+		if (response.status < 200 || response.status >= 300) {
+			throw new Error(this.toHttpError(response, "Google Translate"));
 		}
 
-		const data = await response.json() as unknown;
-		const translatedText = parseGoogleResponse(data);
+		const translatedText = parseGoogleResponse(response.json);
 		if (!translatedText) {
 			throw new Error(t("error.googleReturnedEmpty"));
 		}
@@ -222,31 +208,27 @@ export class TranslatorService {
 		const target = toBingLanguage(request.targetLanguage);
 		const source = request.sourceLanguage === "auto" ? "" : `&from=${encodeURIComponent(toBingLanguage(request.sourceLanguage))}`;
 		const url = `https://api-edge.cognitive.microsofttranslator.com/translate?api-version=3.0${source}&to=${encodeURIComponent(target)}`;
-		const token = await this.getBingAuthToken(settings.requestTimeoutMs, request.signal);
-		const timeout = this.withTimeout(request.signal, settings.requestTimeoutMs);
-		// eslint-disable-next-line obsidianmd/no-fetch -- requires AbortSignal for timeout
-		const response = await fetch(url, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Accept: "*/*",
-					"Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
-					Authorization: `Bearer ${token}`,
-					"Cache-Control": "no-cache",
-					Pragma: "no-cache",
-					Referer: "https://appsumo.com/",
-					"Referrer-Policy": "strict-origin-when-cross-origin",
-				},
-				body: JSON.stringify([{ text: request.text }]),
-				signal: timeout.signal,
-			})
-			.finally(timeout.cleanup);
-		if (!response.ok) {
-			throw new Error(await this.toHttpError(response, "Bing Translate"));
+		const token = await this.getBingAuthToken(settings.requestTimeoutMs);
+		const response = await this.requestUrlWithTimeout({
+			url,
+			method: "POST",
+			headers: {
+				Accept: "*/*",
+				"Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+				Authorization: `Bearer ${token}`,
+				"Cache-Control": "no-cache",
+				Pragma: "no-cache",
+				Referer: "https://appsumo.com/",
+				"Referrer-Policy": "strict-origin-when-cross-origin",
+			},
+			contentType: "application/json",
+			body: JSON.stringify([{ text: request.text }]),
+		}, settings.requestTimeoutMs);
+		if (response.status < 200 || response.status >= 300) {
+			throw new Error(this.toHttpError(response, "Bing Translate"));
 		}
 
-		const data = await response.json() as unknown;
-		const translatedText = parseBingResponse(data);
+		const translatedText = parseBingResponse(response.json);
 		if (!translatedText) {
 			throw new Error(t("error.bingReturnedEmpty"));
 		}
@@ -281,19 +263,15 @@ export class TranslatorService {
 		}
 
 		try {
-			const timeout = this.withTimeout(undefined, settings.requestTimeoutMs);
-			// eslint-disable-next-line obsidianmd/no-fetch -- requires AbortSignal for timeout
-			const response = await fetch(this.getTagsUrl(settings.ollamaBaseUrl), {
-					method: "GET",
-					signal: timeout.signal,
-				})
-				.finally(timeout.cleanup);
+			const response = await this.requestUrlWithTimeout({
+				url: this.getTagsUrl(settings.ollamaBaseUrl),
+			}, settings.requestTimeoutMs);
 
-			if (!response.ok) {
-				return { ok: false, message: await this.toHttpError(response, "Ollama") };
+			if (response.status < 200 || response.status >= 300) {
+				return { ok: false, message: this.toHttpError(response, "Ollama") };
 			}
 
-			const data = (await response.json()) as OllamaTagsResponse;
+			const data = response.json as OllamaTagsResponse;
 			const models = data.models ?? [];
 			const hasModel = models.some((item) => item.name === model || item.model === model);
 			if (!hasModel) {
@@ -311,19 +289,15 @@ export class TranslatorService {
 
 	async listModels(): Promise<string[]> {
 		const settings = this.getSettings();
-		const timeout = this.withTimeout(undefined, settings.requestTimeoutMs);
-		// eslint-disable-next-line obsidianmd/no-fetch -- requires AbortSignal for timeout
-		const response = await fetch(this.getTagsUrl(settings.ollamaBaseUrl), {
-				method: "GET",
-				signal: timeout.signal,
-			})
-			.finally(timeout.cleanup);
+		const response = await this.requestUrlWithTimeout({
+			url: this.getTagsUrl(settings.ollamaBaseUrl),
+		}, settings.requestTimeoutMs);
 
-		if (!response.ok) {
-			throw new Error(await this.toHttpError(response, "Ollama"));
+		if (response.status < 200 || response.status >= 300) {
+			throw new Error(this.toHttpError(response, "Ollama"));
 		}
 
-		const data = (await response.json()) as OllamaTagsResponse;
+		const data = response.json as OllamaTagsResponse;
 		return (data.models ?? [])
 			.map((item) => item.name ?? item.model ?? "")
 			.filter((name) => name.length > 0)
@@ -356,22 +330,18 @@ export class TranslatorService {
 		return `${trimmed}/chat/completions`;
 	}
 
-	private async getBingAuthToken(timeoutMs: number, signal: AbortSignal | undefined): Promise<string> {
-		const timeout = this.withTimeout(signal, timeoutMs);
-		// eslint-disable-next-line obsidianmd/no-fetch -- requires AbortSignal for timeout
-		const response = await fetch("https://edge.microsoft.com/translate/auth", {
-				method: "GET",
-				headers: {
-					"User-Agent":
-						"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.42",
-				},
-				signal: timeout.signal,
-			})
-			.finally(timeout.cleanup);
-		if (!response.ok) {
-			throw new Error(await this.toHttpError(response, "Bing Auth"));
+	private async getBingAuthToken(timeoutMs: number): Promise<string> {
+		const response = await this.requestUrlWithTimeout({
+			url: "https://edge.microsoft.com/translate/auth",
+			headers: {
+				"User-Agent":
+					"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.42",
+			},
+		}, timeoutMs);
+		if (response.status < 200 || response.status >= 300) {
+			throw new Error(this.toHttpError(response, "Bing Auth"));
 		}
-		const token = (await response.text()).trim();
+		const token = response.text.trim();
 		if (!token) {
 			throw new Error(t("error.bingAuthEmptyToken"));
 		}
@@ -386,39 +356,37 @@ export class TranslatorService {
 		return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
 	}
 
-	private withTimeout(signal: AbortSignal | undefined, timeoutMs: number): TimeoutSignal {
-		const controller = new AbortController();
-		const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+	private requestUrlWithTimeout(
+		params: { url: string; method?: string; headers?: Record<string, string>; body?: string; contentType?: string },
+		timeoutMs: number,
+	): Promise<{ status: number; text: string; json: unknown }> {
+		return new Promise((resolve, reject) => {
+			const timeoutId = window.setTimeout(() => {
+				reject(new DOMException("Timeout", "AbortError"));
+			}, timeoutMs);
 
-		const abort = () => controller.abort();
-		if (signal) {
-			if (signal.aborted) {
-				controller.abort();
-			} else {
-				signal.addEventListener("abort", abort, { once: true });
-			}
-		}
-
-		controller.signal.addEventListener(
-			"abort",
-			() => {
-				window.clearTimeout(timeoutId);
-				signal?.removeEventListener("abort", abort);
-			},
-			{ once: true },
-		);
-
-		return {
-			signal: controller.signal,
-			cleanup: () => {
-				window.clearTimeout(timeoutId);
-				signal?.removeEventListener("abort", abort);
-			},
-		};
+			requestUrl({
+				url: params.url,
+				method: params.method,
+				headers: params.headers,
+				body: params.body,
+				contentType: params.contentType,
+				throw: false,
+			}).then(
+				(response) => {
+					window.clearTimeout(timeoutId);
+					resolve(response);
+				},
+				(error) => {
+					window.clearTimeout(timeoutId);
+					reject(error);
+				},
+			);
+		});
 	}
 
-	private async toHttpError(response: Response, service: string): Promise<string> {
-		const text = await response.text();
+	private toHttpError(response: { status: number; text: string }, service: string): string {
+		const text = response.text;
 		if (!text) {
 			return t("error.httpRequestFailed", { service, status: response.status });
 		}
@@ -478,9 +446,9 @@ function parseGoogleResponse(data: unknown): string {
 	if (!Array.isArray(data) || !Array.isArray(data[0])) {
 		return "";
 	}
-	return data[0]
-		.map((item) => Array.isArray(item) ? item[0] : "")
-		.filter((item): item is string => typeof item === "string")
+	const outer = data as unknown[][];
+	return outer[0]
+		.map((item) => (Array.isArray(item) ? String(item[0] ?? "") : ""))
 		.join("")
 		.trim();
 }

@@ -1,6 +1,6 @@
 import { ItemView, Notice, WorkspaceLeaf, setIcon } from "obsidian";
 import type PdfOllamaTranslatorPlugin from "./main";
-import type { HighlightColorId, TranslationLanguage, TranslationProviderId } from "./types";
+import type { TranslationLanguage, TranslationProviderId } from "./types";
 import { t } from "./i18n";
 import { HIGHLIGHT_COLOR_ORDER, getHighlightColor } from "./pdfHighlight/colors";
 

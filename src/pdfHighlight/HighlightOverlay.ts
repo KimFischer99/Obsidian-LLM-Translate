@@ -262,7 +262,7 @@ export class HighlightOverlay {
 			}
 		}
 
-		const activeView = this.app.workspace.getLeaf()?.view as PdfViewLike | undefined;
+		const activeView = this.app.workspace.activeLeaf?.view as PdfViewLike | undefined;
 		if (activeView?.containerEl && (!filePath || activeView.file?.path === filePath)) {
 			return this.hostFromViewer(activeView.containerEl);
 		}
